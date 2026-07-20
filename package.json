@@ -1,0 +1,34 @@
+{
+  "name": "samambaia-spa",
+  "version": "1.0.0",
+  "description": "Sistema de gestión y agendamiento inteligente de citas para Samambaia Spa",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "tailwindcss -i ./public/css/input.css -o ./public/css/styles.css --minify",
+    "build:css": "tailwindcss -i ./public/css/input.css -o ./public/css/styles.css",
+    "watch:css": "tailwindcss -i ./public/css/input.css -o ./public/css/styles.css --watch",
+    "dev": "concurrently \"nodemon server.js\" \"npm run watch:css\"",
+    "seed": "node seed.js"
+  },
+  "keywords": [
+    "spa",
+    "agendamiento",
+    "express",
+    "node"
+  ],
+  "author": "Samambaia Dev Team",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "concurrently": "^10.0.0",
+    "nodemon": "^3.1.2",
+    "tailwindcss": "^4.3.0"
+  }
+}

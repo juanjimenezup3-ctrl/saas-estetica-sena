@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SamambaiaSpa — Panel de Administración</title>
+    <meta name="description" content="Panel privado de administración para gestionar citas, horarios y bloqueos de SamambaiaSpa.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Archivo compilado de Tailwind CSS -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="bg-[#f4f6f4] text-[#2c3d2e] min-h-screen relative overflow-x-hidden antialiased">
+
+    <!-- Barra indicadora superior del panel de administrador -->
+    <div class="bg-gradient-to-r from-[#2c3e2f] via-[#4a5f4d] to-[#2c3e2f] text-center text-[0.68rem] py-1 font-semibold uppercase tracking-widest text-white border-b border-[#2c3e2f]/20">
+        🔑 Panel de Control de la Administradora — Privado & Confidencial
+    </div>
+
+    <!-- Efectos de fondo de cristal (Luces de Spa en Modo Salvia Claro) -->
+    <div class="absolute top-10 left-10 w-72 h-72 bg-green-600/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+    <div class="absolute top-[600px] right-10 w-96 h-96 bg-[#b0c4b1]/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+
+    <!-- ============================================== -->
+    <!-- HEADER — Panel Privado                         -->
+    <!-- ============================================== -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#dae4db] shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <img 
+                    src="/images/logo-samambaia.png" 
+                    alt="SamambaiaSpa" 
+                    class="w-12 h-12 rounded-full border border-[#dae4db] object-fit bg-white hover:scale-105 transition-transform"
+                >
+                <div>
+                    <h1 class="text-xl font-serif text-[#2c3e2f] tracking-wide">SamambaiaSpa</h1>
+                    <p class="text-[0.68rem] uppercase tracking-widest text-[#4a5f4d] font-semibold">Panel Administrativo Privado</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <a href="../" class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#f4f6f4] hover:bg-[#e4e9e4] text-[#2c3d2e] border border-[#dae4db] rounded-full text-xs font-semibold transition-all">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Sitio Público
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal de Administración -->
+    <main class="max-w-5xl mx-auto px-4 py-8 space-y-8">
+        
+        <!-- Barra de Estado / Usuario -->
+        <div class="flex items-center justify-between bg-white border border-[#dae4db] p-4 rounded-2xl shadow-sm">
+            <div class="flex items-center gap-2">
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-600 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-600"></span>
+                </span>
+                <span class="text-xs font-bold text-[#2c3d2e]">Sesión de Agenda Única Activa</span>
+            </div>
+            <span class="text-xs font-semibold text-[#5a735e]">Esteticista: Propietaria Samambaia</span>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SECCIÓN: ESTADÍSTICAS                          -->
+        <!-- ============================================== -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white border border-[#dae4db] p-5 rounded-2xl shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-[#f4f6f4] border border-[#dae4db] rounded-xl flex items-center justify-center text-[#2c3e2f]">
+                    <i data-lucide="calendar-check-2" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <span class="text-2xl font-bold text-[#2c3e2f] block leading-tight" id="admin-stat-total-citas">0</span>
+                    <span class="text-xs uppercase tracking-wider font-semibold text-[#5a735e]">Citas Agendadas (Semana)</span>
+                </div>
+            </div>
+            
+            <div class="bg-white border border-[#dae4db] p-5 rounded-2xl shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-green-50 border border-green-200 rounded-xl flex items-center justify-center text-green-700">
+                    <i data-lucide="banknote" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <span class="text-2xl font-bold text-[#2c3e2f] block leading-tight" id="admin-stat-ingresos">$0 COP</span>
+                    <span class="text-xs uppercase tracking-wider font-semibold text-[#5a735e]">Ingresos Proyectados</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SECCIÓN: CALENDARIO DE LA SEMANA (ADMIN)       -->
+        <!-- ============================================== -->
+        <section class="bg-white border border-[#dae4db] p-6 md:p-8 rounded-3xl shadow-sm space-y-6">
+            <div class="space-y-1">
+                <h3 class="text-xl font-serif text-[#2c3e2f] flex items-center gap-2 pb-2 border-b border-[#dae4db]">
+                    <i data-lucide="calendar" class="text-[#4a5f4d]"></i>
+                    Calendario de Reservas y Bloqueos
+                </h3>
+                <p class="text-xs text-[#5a735e]">
+                    Gestión total de la agenda. Clic en cita ocupada (rojo) para cancelar. Clic en celda libre (verde) para bloquear ese horario manualmente (ej. diligencia o almuerzo).
+                </p>
+            </div>
+
+            <!-- Navegador semanal y Compartir -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="flex items-center bg-[#f4f6f4] border border-[#dae4db] p-1.5 rounded-full px-3 shadow-sm w-full sm:w-auto justify-between sm:justify-start gap-4">
+                    <button type="button" id="admin-prev-week" class="w-7 h-7 rounded-full flex items-center justify-center text-[#2c3e2f] hover:bg-[#e4e9e4] active:scale-95 transition-all cursor-pointer">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                    <span id="admin-week-label" class="text-xs md:text-sm font-semibold text-[#2c3e2f] select-none">Cargando semana...</span>
+                    <button type="button" id="admin-next-week" class="w-7 h-7 rounded-full flex items-center justify-center text-[#2c3e2f] hover:bg-[#e4e9e4] active:scale-95 transition-all cursor-pointer">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <button type="button" id="admin-share-week-btn" class="w-full sm:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-sm">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                    Anunciar Agenda Abierta
+                </button>
+            </div>
+
+            <!-- Grid de calendario admin (Scrollable responsivo) -->
+            <div class="overflow-x-auto border border-[#dae4db] rounded-2xl max-h-[460px] overflow-y-auto bg-[#fafbfa]">
+                <div id="admin-calendar-grid" class="calendar-grid">
+                    <!-- Renderizado dinámico desde admin.js -->
+                </div>
+            </div>
+
+            <!-- Leyendas Admin -->
+            <div class="flex flex-wrap justify-center gap-6 p-3 border-t border-[#dae4db] text-[0.76rem] text-[#5a735e]">
+                <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-3.5 rounded bg-green-50 border border-green-200"></span>
+                    <span>Libre (Click para bloquear)</span>
+                </div>
+                <div class="flex items-center gap-2 bg-red-50 border border-red-200 px-2 py-0.5 rounded">
+                    <span class="w-3.5 h-3.5 rounded bg-red-100 border border-red-300"></span>
+                    <span>Reserva 🔴 (Click para cancelar)</span>
+                </div>
+                <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                    <span class="w-3.5 h-3.5 rounded bg-amber-100 border border-amber-300 border-dashed"></span>
+                    <span>Bloqueo Manual 🚫 (Click para liberar)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-3.5 rounded bg-gray-100 border border-gray-300"></span>
+                    <span>Cerrado / Inactivo</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Secciones inferiores (2 Columnas en desktop) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- COLUMNA IZQUIERDA: CONFIG HORARIOS Y GESTIÓN DE SERVICIOS -->
+            <div class="space-y-8">
+                <!-- HORARIO DE ATENCIÓN SEMANAL -->
+                <section class="bg-white border border-[#dae4db] p-6 rounded-3xl shadow-sm space-y-4">
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-serif text-[#2c3e2f] flex items-center gap-2 pb-2 border-b border-[#dae4db]">
+                            <i data-lucide="clock" class="text-[#4a5f4d]"></i>
+                            Horario de Atención Semanal
+                        </h3>
+                        <p class="text-xs text-[#5a735e]">Define los horarios de apertura y cierre de SamambaiaSpa para cada día.</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead>
+                                <tr class="border-b border-[#dae4db] text-[#2c3e2f] font-bold">
+                                    <th class="py-2.5">Día</th>
+                                    <th class="py-2.5">Activo</th>
+                                    <th class="py-2.5">Inicio</th>
+                                    <th class="py-2.5">Fin</th>
+                                    <th class="py-2.5 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="config-horarios-body" class="divide-y divide-[#dae4db]/20">
+                                <!-- Inyectado dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- GESTIÓN DEL CATÁLOGO DE SERVICIOS -->
+                <section class="bg-white border border-[#dae4db] p-6 rounded-3xl shadow-sm space-y-4">
+                    <div class="flex items-center justify-between pb-2 border-b border-[#dae4db]">
+                        <div class="space-y-1">
+                            <h3 class="text-lg font-serif text-[#2c3e2f] flex items-center gap-2">
+                                <i data-lucide="sparkles" class="text-[#4a5f4d]"></i>
+                                Catálogo de Servicios
+                            </h3>
+                            <p class="text-xs text-[#5a735e]">Agrega, edita o elimina servicios del spa en tiempo real.</p>
+                        </div>
+                        <button type="button" id="btn-agregar-servicio" class="px-3 py-1.5 bg-[#2c3e2f] hover:bg-[#202e22] text-white font-semibold rounded-xl text-xs flex items-center gap-1 active:scale-95 transition-all cursor-pointer">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            Agregar
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
+                        <table class="w-full text-xs text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-[#dae4db] text-[#2c3e2f] font-bold">
+                                    <th class="py-2.5">Servicio</th>
+                                    <th class="py-2.5">Categoría</th>
+                                    <th class="py-2.5">Duración</th>
+                                    <th class="py-2.5">Precio</th>
+                                    <th class="py-2.5 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-servicios-body" class="divide-y divide-[#dae4db]/30 text-[#2c3d2e]">
+                                <!-- Inyectado dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- COLUMNA DERECHA: BLOQUEAR DÍA ENTERO Y AUTOMATIZACIÓN -->
+            <div class="space-y-8">
+                <!-- GESTIONAR FECHAS ESPECIALES (BLOQUEOS Y APERTURAS) -->
+                <section class="bg-white border border-[#dae4db] p-6 rounded-3xl shadow-sm space-y-4">
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-serif text-[#2c3e2f] flex items-center gap-2 pb-2 border-b border-[#dae4db]">
+                            <i data-lucide="calendar-days" class="text-[#4a5f4d]"></i>
+                            Gestionar Fechas Especiales
+                        </h3>
+                        <p class="text-xs text-[#5a735e]">Bloquea días festivos o habilita días especiales (ej. abrir domingos) con horarios específicos.</p>
+                    </div>
+
+                    <form id="form-fecha-especial" class="space-y-3.5">
+                        <div class="space-y-1">
+                            <label for="fecha-especial-tipo" class="block text-xs font-semibold text-[#2c3d2e]">Acción a realizar:</label>
+                            <select id="fecha-especial-tipo" required class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                                <option value="bloqueo">Bloquear Día Completo (Cerrado)</option>
+                                <option value="apertura">Abrir / Habilitar Día Especial (Horario Custom)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label for="fecha-especial-date" class="block text-xs font-semibold text-[#2c3d2e]">Fecha:</label>
+                            <input type="date" id="fecha-especial-date" required class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                        </div>
+
+                        <!-- Rango de horas (solo se muestra para aperturas) -->
+                        <div id="wrapper-horas-especiales" class="grid grid-cols-2 gap-3 hidden">
+                            <div class="space-y-1">
+                                <label for="fecha-especial-inicio" class="block text-xs font-semibold text-[#2c3d2e]">Hora Inicio:</label>
+                                <input type="time" id="fecha-especial-inicio" value="08:00" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e] font-sans">
+                            </div>
+                            <div class="space-y-1">
+                                <label for="fecha-especial-fin" class="block text-xs font-semibold text-[#2c3d2e]">Hora Fin:</label>
+                                <input type="time" id="fecha-especial-fin" value="17:00" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e] font-sans">
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label for="fecha-especial-desc" class="block text-xs font-semibold text-[#2c3d2e]">Descripción / Motivo:</label>
+                            <input type="text" id="fecha-especial-desc" placeholder="Ej. Festivo Nacional, Domingo Especial" required class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-[#2c3e2f] hover:bg-[#202e22] text-white font-semibold rounded-xl active:scale-98 transition-all text-xs text-center cursor-pointer">
+                            Guardar Configuración de Fecha
+                        </button>
+                    </form>
+
+                    <!-- Lista de configuraciones especiales -->
+                    <div class="space-y-2 pt-1">
+                        <span class="block text-xs font-bold text-[#2c3d2e]">Configuraciones Guardadas:</span>
+                        <div id="fechas-especiales-lista" class="max-h-[160px] overflow-y-auto border border-[#dae4db] rounded-xl p-2.5 space-y-2 text-[0.68rem] bg-[#fafbfa] shadow-inner">
+                            <div class="text-[#5a735e] text-center py-4">Cargando fechas especiales...</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- AUTOMATIZACIÓN DE WHATSAPP -->
+                <section class="bg-white border border-[#dae4db] p-6 rounded-3xl shadow-sm space-y-4">
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-serif text-[#2c3e2f] flex items-center gap-2 pb-2 border-b border-[#dae4db]">
+                            <i data-lucide="bot" class="text-[#4a5f4d]"></i>
+                            Automatización de WhatsApp
+                        </h3>
+                        <p class="text-xs text-[#5a735e]">Configura recordatorios automáticos simulados o conecta un webhook real.</p>
+                    </div>
+
+                    <form id="form-config-automatizacion" class="space-y-3.5">
+                        <div class="flex items-center justify-between p-3 bg-[#fafbfa] rounded-2xl border border-[#dae4db]">
+                            <div>
+                                <label for="auto-recordar-activo" class="block text-xs font-semibold text-[#2c3d2e]">Recordatorios Automáticos (24h antes)</label>
+                                <span class="text-[0.65rem] text-[#5a735e] block mt-0.5">Monitorea citas pendientes y simula el envío</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="auto-recordar-activo" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label for="auto-webhook-url" class="block text-xs font-semibold text-[#2c3d2e]">Webhook de Automatización (Zapier / Make):</label>
+                            <input type="url" id="auto-webhook-url" placeholder="https://hook.make.com/..." class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e] font-sans">
+                        </div>
+                        
+                        <button type="submit" class="w-full py-3 bg-[#2c3e2f] hover:bg-[#202e22] text-white font-semibold rounded-xl active:scale-98 transition-all text-xs text-center cursor-pointer">
+                            Guardar Automatización
+                        </button>
+                    </form>
+
+                    <!-- Historial de Recordatorios -->
+                    <div class="space-y-2 pt-1">
+                        <span class="block text-xs font-bold text-[#2c3d2e]">Últimos Recordatorios Enviados:</span>
+                        <div id="auto-reminders-log" class="max-h-[150px] overflow-y-auto border border-[#dae4db] rounded-xl p-2.5 space-y-2 text-[0.68rem] bg-[#fafbfa] shadow-inner">
+                            <div class="text-[#5a735e] text-center py-4">No hay envíos registrados aún.</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SINCRONIZACIÓN DE GOOGLE CALENDAR -->
+                <section class="bg-white border border-[#dae4db] p-6 rounded-3xl shadow-sm space-y-4">
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-serif text-[#2c3e2f] flex items-center gap-2 pb-2 border-b border-[#dae4db]">
+                            <i data-lucide="calendar-plus" class="text-[#4a5f4d]"></i>
+                            Sincronización con Google Calendar
+                        </h3>
+                        <p class="text-xs text-[#5a735e]">Sincroniza citas de ida y vuelta: las reservas de la web van al calendario y tus eventos bloquean la web.</p>
+                    </div>
+
+                    <form id="form-config-gcal" class="space-y-3.5">
+                        <div class="flex items-center justify-between p-3 bg-[#fafbfa] rounded-2xl border border-[#dae4db]">
+                            <div>
+                                <label for="gcal-sync-activo" class="block text-xs font-semibold text-[#2c3d2e]">Sincronización Activa</label>
+                                <span class="text-[0.65rem] text-[#5a735e] block mt-0.5">Sincroniza automáticamente en tiempo real</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="gcal-sync-activo" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label for="gcal-calendar-id" class="block text-xs font-semibold text-[#2c3d2e]">ID de Calendario de Google:</label>
+                            <input type="text" id="gcal-calendar-id" placeholder="ejemplo@gmail.com o id-calendario@group.calendar.google.com" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e] font-sans">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label for="gcal-service-key" class="block text-xs font-semibold text-[#2c3d2e]">Credenciales de Cuenta de Servicio (JSON):</label>
+                            <textarea id="gcal-service-key" rows="4" placeholder='{"type": "service_account", ...}' class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e] font-mono leading-relaxed" style="resize:none;"></textarea>
+                            <span id="gcal-key-status" class="text-[0.62rem] text-green-600 font-semibold mt-1 hidden">✓ Llave JSON guardada en el servidor</span>
+                        </div>
+                        
+                        <button type="submit" class="w-full py-3 bg-[#2c3e2f] hover:bg-[#202e22] text-white font-semibold rounded-xl active:scale-98 transition-all text-xs text-center cursor-pointer">
+                            Guardar Sincronización
+                        </button>
+                    </form>
+                </section>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SECCIÓN: LISTADO GENERAL DE CITAS              -->
+        <!-- ============================================== -->
+        <section class="bg-white border border-[#dae4db] p-6 rounded-3xl shadow-sm space-y-4">
+            <div class="space-y-1">
+                <h3 class="text-lg font-serif text-[#2c3e2f] flex items-center gap-2 pb-2 border-b border-[#dae4db]">
+                    <i data-lucide="list" class="text-[#4a5f4d]"></i>
+                    Listado General de Próximas Citas
+                </h3>
+                <p class="text-xs text-[#5a735e]">Consulta rápida de las próximas citas ordenadas cronológicamente.</p>
+            </div>
+
+            <div class="overflow-x-auto border border-[#dae4db] rounded-xl bg-[#fafbfa]">
+                <div id="admin-citas-empty" class="hidden p-8 text-center text-[#5a735e] text-xs">
+                    <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-[#b0c4b1]"></i>
+                    <span>No hay citas registradas en la agenda.</span>
+                </div>
+                
+                <table class="w-full text-xs text-left border-collapse" id="admin-citas-table">
+                    <thead>
+                        <tr class="bg-[#2c3e2f] text-white font-bold">
+                            <th class="py-2.5 px-3 rounded-l-lg">ID</th>
+                            <th class="py-2.5 px-3">Cliente / Celular</th>
+                            <th class="py-2.5 px-3">Servicio / Precio</th>
+                            <th class="py-2.5 px-3">Fecha</th>
+                            <th class="py-2.5 px-3">Hora</th>
+                            <th class="py-2.5 px-3">Estado</th>
+                            <th class="py-2.5 px-3 text-right rounded-r-lg">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-citas-table-body" class="divide-y divide-[#dae4db]/20">
+                        <!-- Inyectado dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================================== -->
+    <!-- MODAL: DETALLES DE CITA Y ELIMINACIÓN          -->
+    <!-- ============================================== -->
+    <div id="modal-cita" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden animate-fade-in">
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-[#dae4db] transform transition-all animate-scale-up space-y-5 text-[#2c3d2e]">
+            <h4 class="text-xl font-serif text-[#2c3e2f] border-b border-[#dae4db] pb-2" id="modal-cita-titulo">Reserva</h4>
+            
+            <div class="text-xs space-y-3.5 text-[#2c3d2e]" id="modal-cita-cuerpo">
+                <!-- Llenado dinámico -->
+            </div>
+            
+            <div class="space-y-2.5 pt-2">
+                <button type="button" id="modal-cita-btn-recordar" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer border border-green-500/20">
+                    <i data-lucide="message-square" class="w-4 h-4"></i>
+                    Enviar Recordatorio por WhatsApp
+                </button>
+                <a id="modal-cita-btn-gcal" target="_blank" rel="noopener noreferrer" class="w-full py-3 bg-[#f4f6f4] hover:bg-[#e4e9e4] text-[#2c3d2e] border border-[#dae4db] font-semibold rounded-full active:scale-95 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    Agregar a mi Google Calendar
+                </a>
+                <div class="flex gap-2.5">
+                    <button type="button" id="modal-cita-btn-cerrar" class="w-1/2 py-2.5 border border-[#dae4db] text-[#4a5f4d] hover:bg-[#f4f6f4] font-semibold rounded-full active:scale-95 transition-all text-xs cursor-pointer">
+                        Cerrar
+                    </button>
+                    <button type="button" id="modal-cita-btn-cancelar" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs cursor-pointer">
+                        Cancelar Cita
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: CREAR BLOQUEO FRACIONAL (MANUAL)        -->
+    <!-- ============================================== -->
+    <div id="modal-bloqueo" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden animate-fade-in">
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-[#dae4db] transform transition-all animate-scale-up space-y-5 text-[#2c3d2e]">
+            <h4 class="text-xl font-serif text-[#2c3e2f] border-b border-[#dae4db] pb-2">Gestión de Franja Libre</h4>
+            
+            <div class="space-y-4">
+                <p class="p-3 bg-[#fafbfa] rounded-xl border border-[#dae4db] text-xs">
+                    Franja seleccionada: El día <strong id="lbl-block-fecha" class="text-[#2c3e2f]"></strong> a las <strong id="lbl-block-hora" class="text-[#2c3e2f]"></strong>.
+                </p>
+
+                <!-- COMPARTIR DISPONIBILIDAD -->
+                <div class="bg-green-50/50 border border-green-200/60 p-4 rounded-2xl space-y-3">
+                    <h5 class="text-xs font-bold text-green-800 flex items-center gap-1.5">
+                        <i data-lucide="share-2" class="w-4 h-4"></i>
+                        Compartir disponibilidad con clientes
+                    </h5>
+                    <div class="space-y-2">
+                        <input type="tel" id="modal-share-tel" placeholder="Teléfono del cliente (opcional)" class="w-full px-3 py-2 bg-white border border-green-250/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 text-xs text-[#2c3d2e]">
+                        <button type="button" id="modal-share-btn-whatsapp" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-sm active:scale-95 transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i data-lucide="message-square" class="w-4.5 h-4.5"></i>
+                            Enviar Oferta por WhatsApp
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-[#dae4db]"></div>
+                    <span class="flex-shrink mx-3 text-[0.68rem] text-[#5a735e] font-semibold uppercase tracking-wider">Ó Bloquear Franja</span>
+                    <div class="flex-grow border-t border-[#dae4db]"></div>
+                </div>
+
+                <!-- BLOQUEAR HORARIO -->
+                <form id="form-crear-bloqueo-franja" class="space-y-3.5">
+                    <input type="hidden" id="modal-block-fecha">
+                    <input type="hidden" id="modal-block-hora">
+                    
+                    <div class="text-xs space-y-3.5">
+                        <div class="space-y-1">
+                            <label for="modal-block-duracion" class="block font-semibold text-[#2c3d2e]">Duración del Bloqueo:</label>
+                            <select id="modal-block-duracion" required class="w-full px-3.5 py-2.5 bg-white border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                                <option value="30">30 minutos</option>
+                                <option value="60">60 minutos (1 hora)</option>
+                                <option value="90">90 minutos (1.5 horas)</option>
+                                <option value="120">120 minutos (2 horas)</option>
+                                <option value="180">180 minutos (3 horas)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label for="modal-block-desc" class="block font-semibold text-[#2c3d2e]">Descripción / Motivo del Bloqueo:</label>
+                            <input type="text" id="modal-block-desc" placeholder="Ej. Almuerzo, Diligencia" required class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2.5 pt-1">
+                        <button type="button" id="modal-block-btn-cerrar" class="w-1/2 py-2.5 border border-[#dae4db] text-[#4a5f4d] hover:bg-[#f4f6f4] font-semibold rounded-full active:scale-95 transition-all text-xs">
+                            Cerrar
+                        </button>
+                        <button type="submit" class="w-1/2 py-2.5 bg-[#2c3e2f] hover:bg-[#202e22] text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs">
+                            Bloquear
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: ELIMINAR BLOQUEO                        -->
+    <!-- ============================================== -->
+    <div id="modal-liberar-bloqueo" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden animate-fade-in">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-[#dae4db] transform transition-all animate-scale-up space-y-5 text-[#2c3d2e]">
+            <h4 class="text-xl font-serif text-[#2c3e2f] border-b border-[#dae4db] pb-2">Liberar Horario</h4>
+            
+            <div class="text-xs space-y-3 text-[#5a735e]">
+                <p>¿Estás segura de que deseas liberar este horario bloqueado de forma manual?</p>
+                <p id="lbl-liberar-detalle" class="p-3 bg-[#fafbfa] border border-[#dae4db] rounded-xl font-semibold text-[#2c3e2f] text-center italic"></p>
+                <input type="hidden" id="modal-liberar-id">
+            </div>
+            
+            <div class="flex gap-2.5 pt-2">
+                <button type="button" id="modal-liberar-btn-cerrar" class="w-1/2 py-2.5 border border-[#dae4db] text-[#4a5f4d] hover:bg-[#f4f6f4] font-semibold rounded-full active:scale-95 transition-all text-xs">
+                    Cerrar
+                </button>
+                <button type="button" id="modal-liberar-btn-confirmar" class="w-1/2 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs">
+                    Liberar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: CREAR / EDITAR SERVICIO                 -->
+    <!-- ============================================== -->
+    <div id="modal-servicio" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden animate-fade-in">
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-[#dae4db] transform transition-all animate-scale-up space-y-5 text-[#2c3d2e]">
+            <h4 class="text-xl font-serif text-[#2c3e2f] border-b border-[#dae4db] pb-2" id="modal-servicio-titulo">Nuevo Servicio</h4>
+            
+            <form id="form-servicio" class="space-y-4">
+                <input type="hidden" id="modal-servicio-id">
+                
+                <div class="space-y-3.5 text-xs">
+                    <div class="space-y-1">
+                        <label for="modal-servicio-nombre" class="block font-semibold text-[#2c3d2e]">Nombre del Servicio:</label>
+                        <input type="text" id="modal-servicio-nombre" required placeholder="Ej. Uñas Semipermanentes" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="modal-servicio-categoria" class="block font-semibold text-[#2c3d2e]">Categoría:</label>
+                        <select id="modal-servicio-categoria" required class="w-full px-3.5 py-2.5 bg-white border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                            <option value="Uñas">Uñas</option>
+                            <option value="Tratamientos">Tratamientos</option>
+                            <option value="Relajación">Relajación</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div class="space-y-1">
+                            <label for="modal-servicio-duracion" class="block font-semibold text-[#2c3d2e]">Duración (minutos):</label>
+                            <input type="number" id="modal-servicio-duracion" required min="5" max="300" step="5" placeholder="Ej. 60" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                        </div>
+                        <div class="space-y-1">
+                            <label for="modal-servicio-precio" class="block font-semibold text-[#2c3d2e]">Precio (COP):</label>
+                            <input type="number" id="modal-servicio-precio" required min="1000" step="500" placeholder="Ej. 35000" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="modal-servicio-descripcion" class="block font-semibold text-[#2c3d2e]">Descripción:</label>
+                        <textarea id="modal-servicio-descripcion" rows="3" placeholder="Descripción corta del servicio y beneficios..." class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e] leading-relaxed" style="resize:none;"></textarea>
+                    </div>
+
+                    <!-- Campos de oferta y descuentos especiales -->
+                    <div class="flex flex-col gap-2 p-3 bg-[#fafbfa] border border-[#dae4db] rounded-xl mt-2">
+                        <div class="flex items-center gap-2 mb-1">
+                            <input type="checkbox" id="modal-servicio-oferta-dia" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                            <label for="modal-servicio-oferta-dia" class="font-semibold text-[#2c3d2e] select-none cursor-pointer">Marcar como Oferta del Día (Solo Hoy) 🔥</label>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 border-t border-[#dae4db] pt-2">
+                            <input type="checkbox" id="modal-servicio-oferta-fechas" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                            <label for="modal-servicio-oferta-fechas" class="font-semibold text-[#2c3d2e] select-none cursor-pointer">Promoción por Fechas Específicas 📅</label>
+                        </div>
+                        
+                        <div id="modal-servicio-fechas-rango" class="grid grid-cols-2 gap-3.5 hidden mt-1">
+                            <div class="space-y-1">
+                                <label for="modal-servicio-oferta-inicio" class="block font-semibold text-[#2c3d2e] text-[0.65rem]">Fecha Inicio:</label>
+                                <input type="date" id="modal-servicio-oferta-inicio" class="w-full px-2 py-1.5 bg-white border border-[#dae4db] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 text-xs text-[#2c3d2e]">
+                            </div>
+                            <div class="space-y-1">
+                                <label for="modal-servicio-oferta-fin" class="block font-semibold text-[#2c3d2e] text-[0.65rem]">Fecha Fin:</label>
+                                <input type="date" id="modal-servicio-oferta-fin" class="w-full px-2 py-1.5 bg-white border border-[#dae4db] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 text-xs text-[#2c3d2e]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div class="space-y-1">
+                            <label for="modal-servicio-descuento" class="block font-semibold text-[#2c3d2e]">Descuento (%):</label>
+                            <input type="number" id="modal-servicio-descuento" min="0" max="100" placeholder="Ej. 15" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                        </div>
+                        <div class="space-y-1">
+                            <label for="modal-servicio-precio-esp" class="block font-semibold text-[#2c3d2e]">Precio Especial (COP):</label>
+                            <input type="number" id="modal-servicio-precio-esp" min="0" step="500" placeholder="Ej. 20000" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2.5 pt-2">
+                    <button type="button" id="modal-servicio-btn-cerrar" class="w-1/2 py-2.5 border border-[#dae4db] text-[#4a5f4d] hover:bg-[#f4f6f4] font-semibold rounded-full active:scale-95 transition-all text-xs cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-[#2c3e2f] hover:bg-[#202e22] text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs cursor-pointer">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- FOOTER                                         -->
+    <!-- ============================================== -->
+    <footer class="bg-[#2c3e2f] text-white text-center py-10 border-t-4 border-[#4a5f4d] px-4 space-y-4 mt-12">
+        <div class="flex flex-col items-center gap-2">
+            <img src="/images/logo-samambaia.png" alt="SamambaiaSpa" class="w-14 h-14 rounded-full border border-white/20 object-fit bg-white hover:scale-105 transition-all">
+            <h3 class="font-serif text-lg tracking-wider text-white">SamambaiaSpa</h3>
+        </div>
+        <div class="text-[0.82rem] font-light opacity-80 space-y-1">
+            <p>© 2026 SamambaiaSpa - Todos los derechos reservados.</p>
+            <p class="text-[0.68rem] tracking-widest text-[#b0c4b1] font-semibold uppercase">Proyecto Productivo SENA — Formato GFPI-F-144</p>
+        </div>
+    </footer>
+
+    <script src="/js/dashboard.js"></script>
+    <!-- Auto-login con credenciales demo (proviene del banner de la landing page) -->
+    <script>
+        (function () {
+            const demoUser = sessionStorage.getItem('demo_user');
+            const demoPass = sessionStorage.getItem('demo_pass');
+            if (demoUser && demoPass) {
+                sessionStorage.removeItem('demo_user');
+                sessionStorage.removeItem('demo_pass');
+                // Espera a que dashboard.js cargue y ejecute su DOMContentLoaded
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        const inputUser = document.getElementById('login-usuario');
+                        const inputPass = document.getElementById('login-password');
+                        const btnLogin  = document.getElementById('btn-login');
+                        if (inputUser) inputUser.value = demoUser;
+                        if (inputPass) inputPass.value = demoPass;
+                        if (btnLogin)  btnLogin.click();
+                    }, 600);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

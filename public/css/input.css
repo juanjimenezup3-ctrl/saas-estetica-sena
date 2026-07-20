@@ -1,0 +1,253 @@
+@import "tailwindcss";
+
+/* ==========================================
+   SamambaiaSpa — Estilos Personalizados
+   ========================================== */
+
+/* Tipografía y Cuerpo */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: "Outfit", system-ui, -apple-system, sans-serif;
+}
+
+h1, h2, h3, h4, .font-serif {
+    font-family: "Playfair Display", Georgia, serif;
+}
+
+/* Animaciones personalizadas */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+    animation: spin 8s linear infinite;
+}
+
+.animate-spin-custom {
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes bounceSubtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.animate-bounce-subtle {
+    animation: bounceSubtle 2.5s ease-in-out infinite;
+}
+
+
+@theme {
+    --color-purple-deep: #6a1b9a;
+    --color-purple-mid: #8e24aa;
+    --color-purple-light: #ab47bc;
+    --color-purple-soft: #f3e5f5;
+    --color-purple-glow: rgba(106, 27, 154, 0.12);
+    --color-purple-dark: #4a148c;
+
+    /* Sage Green / Salvia Palette (Light, subtle, organic wellness) */
+    --color-sage-deep: #2c3e2f;
+    --color-sage-mid: #4a5f4d;
+    --color-sage-light: #5a735e;
+    --color-sage-pastel: #dae4db;
+    --color-sage-bg: #f4f6f4;
+    --color-sage-soft: #fafbfa;
+
+    --color-bg-page: #f9f6fb;
+    --color-bg-white: #ffffff;
+    --color-border-light: #e8e0ee;
+    --color-text-dark: #2d2235;
+    --color-text-muted: #7b6f87;
+    --color-text-on-purple: #ffffff;
+
+    --color-gold-custom: #c9a84c;
+    --color-error-custom: #d32f2f;
+    --color-success-custom: #388e3c;
+    --color-warning-custom: #f57c00;
+    
+    --radius-lg: 16px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+    --radius-pill: 20px;
+    
+    --shadow-soft: 0 4px 20px rgba(106, 27, 154, 0.06);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Tarjetas de Servicios */
+.servicio-card {
+    background-color: var(--color-bg-white);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+}
+
+.servicio-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-purple-light);
+    box-shadow: 0 10px 25px rgba(106, 27, 154, 0.1);
+}
+
+.servicio-card-cat {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: var(--color-purple-deep);
+    background-color: var(--color-purple-soft);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-pill);
+    width: max-content;
+    margin-bottom: 0.75rem;
+}
+
+.servicio-card-name {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-purple-deep);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    border-left: 3.5px solid var(--color-purple-mid);
+    padding-left: 0.65rem;
+    transition: all 0.2s ease;
+}
+
+.servicio-card:hover .servicio-card-name {
+    color: var(--color-purple-light);
+    border-left-color: var(--color-purple-light);
+}
+
+.servicio-card-desc {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.servicio-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--color-border-light);
+    padding-top: 0.75rem;
+    margin-top: auto;
+}
+
+.servicio-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+.tag-precio {
+    color: var(--color-gold-custom);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.tag-precio-original {
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.tag-precio-final {
+    color: #d32f2f;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.tag-duracion {
+    color: var(--color-purple-deep);
+    background-color: var(--color-purple-soft);
+}
+
+/* ============================
+   Oferta del Día — Card Glow
+   ============================ */
+.servicio-card.es-oferta {
+    border: 2px solid var(--color-gold-custom);
+    box-shadow: 0 0 18px rgba(201, 168, 76, 0.2), 0 4px 20px rgba(106, 27, 154, 0.06);
+    position: relative;
+}
+
+.servicio-card.es-oferta:hover {
+    box-shadow: 0 0 28px rgba(201, 168, 76, 0.35), 0 10px 25px rgba(106, 27, 154, 0.1);
+    border-color: #b8942e;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 18px rgba(201, 168, 76, 0.2), 0 4px 20px rgba(106, 27, 154, 0.06); }
+    50% { box-shadow: 0 0 26px rgba(201, 168, 76, 0.35), 0 4px 20px rgba(106, 27, 154, 0.06); }
+}
+
+.servicio-card.es-oferta {
+    animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.servicio-card.es-oferta:hover {
+    animation: none;
+}
+
+/* Badge flotante de oferta */
+.badge-oferta {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    background: linear-gradient(135deg, #c9a84c, #e0c068);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.3rem 0.65rem;
+    border-radius: 0 var(--radius-lg) 0 var(--radius-md);
+    box-shadow: 0 2px 8px rgba(201, 168, 76, 0.3);
+    z-index: 2;
+}
+
+/* Badge de descuento */
+.badge-descuento {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.2rem 0.45rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid #c8e6c9;
+    width: max-content;
+}
+
+/* Badge de precio especial */
+.badge-precio-especial {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    background-color: #e3f2fd;
+    color: #1565c0;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.2rem 0.45rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid #bbdefb;
+    width: max-content;
+}
+
