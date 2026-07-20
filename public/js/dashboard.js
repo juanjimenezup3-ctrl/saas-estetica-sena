@@ -786,31 +786,68 @@ document.addEventListener('DOMContentLoaded', () => {
         const ordenDias = [1, 2, 3, 4, 5, 6, 0];
         
         ordenDias.forEach(diaKey => {
-            // Si no hay configuración previa en base de datos, proveemos valores por defecto (de 8am a 5pm inactivo)
             const config = configHorarioGlobal[diaKey] || { activo: false, inicio: '08:00', fin: '17:00' };
 
             const tr = document.createElement('tr');
-            tr.className = 'hover:bg-purple-50/20 transition-colors border-b border-purple-100/40';
-            tr.innerHTML = `
-                <td class="py-2.5 text-purple-950"><strong>${nombresDiasSemana[diaKey]}</strong></td>
-                <td class="py-2.5">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="activo-${diaKey}" class="sr-only peer" ${config.activo ? 'checked' : ''}>
-                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
-                    </label>
-                </td>
-                <td class="py-2.5">
-                    <input type="time" class="px-2 py-1 border border-purple-200 rounded-lg text-xs bg-[#faf7fc] focus:outline-none focus:ring-1 focus:ring-purple-600 text-purple-950 font-sans" id="inicio-${diaKey}" value="${config.inicio}">
-                </td>
-                <td class="py-2.5">
-                    <input type="time" class="px-2 py-1 border border-purple-200 rounded-lg text-xs bg-[#faf7fc] focus:outline-none focus:ring-1 focus:ring-purple-600 text-purple-950 font-sans" id="fin-${diaKey}" value="${config.fin}">
-                </td>
-                <td class="py-2.5 text-right">
-                    <button type="button" class="btn-save-config px-3 py-1 bg-white text-purple-700 border border-purple-200 hover:bg-purple-800 hover:text-white hover:border-transparent font-semibold rounded-lg transition-all text-[0.7rem] active:scale-95 cursor-pointer" data-dia="${diaKey}">
-                        Guardar
-                    </button>
-                </td>
-            `;
+            tr.className = 'transition-colors border-b border-purple-100/40';
+            tr.style.backgroundColor = 'transparent';
+            tr.onmouseover = () => tr.style.backgroundColor = 'rgba(147,51,234,0.04)';
+            tr.onmouseout  = () => tr.style.backgroundColor = 'transparent';
+
+            // Celda día
+            const tdNombre = document.createElement('td');
+            tdNombre.className = 'py-2.5 text-purple-950';
+            tdNombre.innerHTML = `<strong>${nombresDiasSemana[diaKey]}</strong>`;
+
+            // Celda toggle switch (visual puro con JS)
+            const tdToggle = document.createElement('td');
+            tdToggle.className = 'py-2.5';
+            const label = document.createElement('label');
+            label.className = 'relative inline-flex items-center cursor-pointer select-none';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `activo-${diaKey}`;
+            checkbox.checked = config.activo;
+            checkbox.className = 'sr-only';
+
+            const track = document.createElement('div');
+            const knob = document.createElement('div');
+            track.style.cssText = `width:36px;height:20px;border-radius:9999px;background:${config.activo ? '#7c3aed' : '#d1d5db'};position:relative;transition:background 0.2s;`;
+            knob.style.cssText = `position:absolute;top:2px;left:${config.activo ? '18px' : '2px'};width:16px;height:16px;background:#fff;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);`;
+            track.appendChild(knob);
+
+            checkbox.addEventListener('change', () => {
+                const isOn = checkbox.checked;
+                track.style.background = isOn ? '#7c3aed' : '#d1d5db';
+                knob.style.left = isOn ? '18px' : '2px';
+            });
+
+            label.appendChild(checkbox);
+            label.appendChild(track);
+            tdToggle.appendChild(label);
+
+            // Celda Abre
+            const tdInicio = document.createElement('td');
+            tdInicio.className = 'py-2.5';
+            tdInicio.innerHTML = `<input type="time" id="inicio-${diaKey}" value="${config.inicio}" class="px-2 py-1 border border-purple-200 rounded-lg text-xs bg-[#faf7fc] focus:outline-none text-purple-950 font-sans" style="font-size:0.75rem;">`;
+
+            // Celda Cierra
+            const tdFin = document.createElement('td');
+            tdFin.className = 'py-2.5';
+            tdFin.innerHTML = `<input type="time" id="fin-${diaKey}" value="${config.fin}" class="px-2 py-1 border border-purple-200 rounded-lg text-xs bg-[#faf7fc] focus:outline-none text-purple-950 font-sans" style="font-size:0.75rem;">`;
+
+            // Celda Guardar
+            const tdBtn = document.createElement('td');
+            tdBtn.className = 'py-2.5 text-right';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-save-config px-3 py-1 bg-white text-purple-700 border border-purple-200 hover:bg-purple-800 hover:text-white font-semibold rounded-lg transition-all text-[0.7rem] active:scale-95 cursor-pointer';
+            btn.setAttribute('data-dia', diaKey);
+            btn.textContent = 'Guardar';
+            tdBtn.appendChild(btn);
+
+            tr.append(tdNombre, tdToggle, tdInicio, tdFin, tdBtn);
             configHorariosBody.appendChild(tr);
         });
 
