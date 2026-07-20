@@ -25,11 +25,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof url === 'string' && url.startsWith('/api/')) {
                 const pathParts = window.location.pathname.split('/').filter(p => p);
                 const slug = pathParts[0] || 'samambaia';
+                const token = localStorage.getItem('admin_token');
+
                 if (options.headers instanceof Headers) {
                     options.headers.set('x-tenant-slug', slug);
+                    if (token && !options.headers.has('Authorization')) {
+                        options.headers.set('Authorization', `Bearer ${token}`);
+                    }
                 } else {
                     options.headers = options.headers || {};
                     options.headers['x-tenant-slug'] = slug;
+                    if (token && !options.headers['Authorization']) {
+                        options.headers['Authorization'] = `Bearer ${token}`;
+                    }
                 }
             }
             return originalFetch(url, options);
