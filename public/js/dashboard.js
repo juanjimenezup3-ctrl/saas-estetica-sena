@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnPasarelaRenovarCancelar = document.getElementById('btn-pasarela-renovar-cancelar');
     const pasarelaRenovarPlanTitulo = document.getElementById('pasarela-renovar-plan-titulo');
     const pasarelaRenovarPrecio = document.getElementById('pasarela-renovar-precio');
+    const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
 
     // =================================================================
     // ESTADO DE LA APLICACIÓN
@@ -1781,6 +1782,17 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) {
                 console.error(e);
             }
+        }
+    });
+
+    // Cerrar sesión
+    btnCerrarSesion.addEventListener('click', () => {
+        if (confirm('¿Estás segura de que deseas cerrar la sesión?')) {
+            localStorage.removeItem('admin_token');
+            mostrarToast('🔒 Sesión cerrada con éxito. Redirigiendo...', 'success');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 800);
         }
     });
 });

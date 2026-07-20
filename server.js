@@ -406,6 +406,43 @@ async function adminAuthMiddleware(req, res, next) {
 // ENDPOINTS PÚBLICOS GLOBALES (SaaS Auto-servicio & Webhooks de Pago)
 // =====================================================================
 
+app.post('/api/saas/login', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ ok: false, mensaje: 'Email y contraseña requeridos.' });
+    }
+
+    try {
+        const { connectDB } = require('./database');
+        const db = await connectDB();
+
+        // Buscar el administrador por usuario/email
+        const admin = await db.get('SELECT * FROM administradores WHERE usuario = ?', [email.trim()]);
+        if (!admin || admin.password !== password) {
+            return res.status(401).json({ ok: false, mensaje: 'Usuario o contraseña incorrectos.' });
+        }
+
+        // Obtener el slug de la empresa
+        const empresa = await db.get('SELECT slug FROM empresas WHERE id = ?', [admin.empresa_id]);
+        if (!empresa) {
+            return res.status(404).json({ ok: false, mensaje: 'Centro de estética no encontrado.' });
+        }
+
+        // Generar token
+        const token = crypto.createHash('sha256').update(`${email}-${empresa.slug}-secret`).digest('hex');
+
+        return res.json({
+            ok: true,
+            token,
+            slug: empresa.slug,
+            mensaje: 'Inicio de sesión SaaS exitoso.'
+        });
+    } catch (err) {
+        console.error('❌ Error en login global SaaS:', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error interno en el servidor.' });
+    }
+});
+
 app.post('/api/saas/register', async (req, res) => {
     const { nombreNegocio, email, password, plan } = req.body;
 
