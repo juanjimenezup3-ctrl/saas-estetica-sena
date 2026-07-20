@@ -378,6 +378,49 @@
                         </button>
                     </form>
                 </section>
+
+                <!-- ============================================== -->
+                <!-- SECCIÓN: MI SUSCRIPCIÓN SAAS                    -->
+                <!-- ============================================== -->
+                <section class="bg-white border border-[#dae4db] p-6 rounded-3xl shadow-sm space-y-4">
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-serif text-[#2c3e2f] flex items-center gap-2 pb-2 border-b border-[#dae4db]">
+                            <i data-lucide="credit-card" class="text-[#4a5f4d]"></i>
+                            Mi Suscripción SaaS
+                        </h3>
+                        <p class="text-xs text-[#5a735e]">Consulta y gestiona tu plan de facturación de EstéticaSaaS.</p>
+                    </div>
+
+                    <div class="p-4 bg-[#fafbfa] border border-[#dae4db] rounded-2xl space-y-3">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-[#5a735e] font-semibold">Plan Activo:</span>
+                            <span id="sub-plan-name" class="font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded border border-purple-250">Cargando...</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-[#5a735e] font-semibold">Estado:</span>
+                            <span id="sub-status" class="font-bold text-green-700 bg-green-50 px-2.5 py-0.5 rounded border border-green-250">Cargando...</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-[#5a735e] font-semibold">Próximo Cobro:</span>
+                            <span id="sub-next-billing" class="font-bold text-[#2c3e2f]">Cargando...</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-1">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" id="btn-sub-upgrade" class="py-2.5 bg-[#f4f6f4] hover:bg-[#e4e9e4] border border-[#dae4db] text-[#2c3d2e] font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer">
+                                Cambiar Plan
+                            </button>
+                            <button type="button" id="btn-sub-pay" class="py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                                <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+                                Pagar / Renovar
+                            </button>
+                        </div>
+                        <button type="button" id="btn-sub-cancel" class="w-full py-2 bg-red-50 text-red-700 border border-red-100 hover:bg-red-600 hover:text-white hover:border-transparent font-semibold rounded-xl text-xs active:scale-95 transition-all cursor-pointer">
+                            Cancelar Suscripción
+                        </button>
+                    </div>
+                </section>
             </div>
         </div>
 
@@ -725,7 +768,49 @@
             <p>© 2026 SamambaiaSpa - Todos los derechos reservados.</p>
             <p class="text-[0.68rem] tracking-widest text-[#b0c4b1] font-semibold uppercase">Proyecto Productivo SENA — Formato GFPI-F-144</p>
         </div>
-    </footer>
+    <!-- ============================================== -->
+    <!-- MODAL: PASARELA DE PAGO WOMPI (SANDBOX RENEWAL) -->
+    <!-- ============================================== -->
+    <div id="modal-pasarela-renovar" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden animate-fade-in">
+        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-200 transform transition-all animate-scale-up text-gray-800">
+            <!-- Wompi Banner Header -->
+            <div class="bg-[#1f263e] p-4 flex items-center justify-between text-white">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center font-bold text-gray-900 text-xs">W</div>
+                    <span class="font-bold text-xs uppercase tracking-widest font-mono">Wompi Sandbox</span>
+                </div>
+                <span class="text-[0.6rem] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">Ambiente de Pruebas</span>
+            </div>
+
+            <!-- Pasarela Body -->
+            <div class="p-6 space-y-4">
+                <div class="text-center space-y-1.5">
+                    <span class="text-[0.62rem] uppercase tracking-wider text-gray-500 font-bold block">Resumen del Pago</span>
+                    <h5 id="pasarela-renovar-plan-titulo" class="text-sm font-bold text-gray-900">Plan Pro / Multi-Sede</h5>
+                    <p id="pasarela-renovar-precio" class="text-2xl font-extrabold text-[#1f263e]">$67.100 COP</p>
+                    <p class="text-[0.68rem] text-gray-400">Concepto: Renovación Mensual EstéticaSaaS</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 text-[0.68rem] space-y-2">
+                    <p class="font-bold text-gray-700">💳 Simulación de Medio de Pago:</p>
+                    <div class="flex items-center justify-between bg-white px-3 py-2 border rounded border-gray-300">
+                        <span class="font-mono text-gray-650">**** **** **** 4242</span>
+                        <span class="text-[0.6rem] uppercase bg-gray-100 px-1.5 py-0.5 rounded font-bold">VISA</span>
+                    </div>
+                    <p class="text-[0.62rem] text-gray-400 leading-tight">Al hacer clic en "Confirmar Renovación", se enviará la aprobación mediante un webhook automatizado en Express para renovar tu cuenta por 30 días.</p>
+                </div>
+
+                <!-- Botones Pasarela -->
+                <button type="button" id="btn-pasarela-renovar-confirmar" class="w-full py-3 bg-[#24c478] hover:bg-[#1fa968] text-white font-bold rounded-full text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    Confirmar Renovación
+                </button>
+                <button type="button" id="btn-pasarela-renovar-cancelar" class="w-full py-2.5 border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold rounded-full text-xs transition-all cursor-pointer">
+                    Cancelar Transacción
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="/js/dashboard.js"></script>
     <!-- Auto-login con credenciales demo (proviene del banner de la landing page) -->

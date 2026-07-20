@@ -402,7 +402,191 @@ async function adminAuthMiddleware(req, res, next) {
     }
 }
 
+// =====================================================================
+// ENDPOINTS PÚBLICOS GLOBALES (SaaS Auto-servicio & Webhooks de Pago)
+// =====================================================================
+
+app.post('/api/saas/register', async (req, res) => {
+    const { nombreNegocio, email, password, plan } = req.body;
+
+    if (!nombreNegocio || !email || !password || !plan) {
+        return res.status(400).json({ ok: false, mensaje: 'Todos los campos son obligatorios.' });
+    }
+
+    try {
+        const { connectDB } = require('./database');
+        const db = await connectDB();
+
+        // Generar slug del negocio
+        const slug = nombreNegocio
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remover acentos
+            .replace(/[^a-z0-9\s-]/g, '')    // Remover caracteres especiales
+            .trim()
+            .replace(/\s+/g, '-');           // Reemplazar espacios por guiones
+
+        // Validar si el slug ya existe
+        const existing = await db.get('SELECT id FROM empresas WHERE slug = ?', [slug]);
+        if (existing) {
+            return res.status(400).json({ ok: false, mensaje: 'Ya existe un spa registrado con un nombre muy similar. Por favor intenta con otro nombre.' });
+        }
+
+        // Validar si el administrador ya existe globalmente
+        const existingAdmin = await db.get('SELECT id FROM administradores WHERE usuario = ?', [email.trim()]);
+        if (existingAdmin) {
+            return res.status(400).json({ ok: false, mensaje: 'Este correo electrónico ya está registrado en la plataforma.' });
+        }
+
+        // Iniciar transacción e insertar registros de onboarding
+        await db.run('BEGIN TRANSACTION;');
+
+        // Calcular fecha fin de suscripción de prueba (14 días gratis)
+        const finSuscripcion = new Date();
+        finSuscripcion.setDate(finSuscripcion.getDate() + 14);
+        const finSuscripcionStr = finSuscripcion.toISOString().split('T')[0];
+
+        // 1. Crear Empresa
+        const resEmpresa = await db.run(`
+            INSERT INTO empresas (slug, nombre, descripcion, telefono, plan_nombre, suscripcion_estado, suscripcion_fin)
+            VALUES (?, ?, ?, ?, ?, 'Trial', ?)
+        `, [slug, nombreNegocio.trim(), `Sede principal de ${nombreNegocio}`, '3000000000', plan, finSuscripcionStr]);
+        const empresaId = resEmpresa.lastID;
+
+        // 2. Crear Configuración
+        await db.run(`
+            INSERT INTO configuracion_empresa (empresa_id) VALUES (?)
+        `, [empresaId]);
+
+        // 3. Configurar horarios por defecto (Lunes a Sábado de 8:00 AM a 7:00 PM)
+        const horarios = [
+            { dia: 0, activo: 0, inicio: '08:00', fin: '19:00' }, // Dom
+            { dia: 1, activo: 1, inicio: '08:00', fin: '19:00' }, // Lun
+            { dia: 2, activo: 1, inicio: '08:00', fin: '19:00' }, // Mar
+            { dia: 3, activo: 1, inicio: '08:00', fin: '19:00' }, // Mie
+            { dia: 4, activo: 1, inicio: '08:00', fin: '19:00' }, // Jue
+            { dia: 5, activo: 1, inicio: '08:00', fin: '19:00' }, // Vie
+            { dia: 6, activo: 1, inicio: '08:00', fin: '17:00' }, // Sab
+        ];
+        for (const h of horarios) {
+            await db.run(`
+                INSERT INTO configuracion_horario (empresa_id, dia_semana, activo, inicio, fin)
+                VALUES (?, ?, ?, ?, ?)
+            `, [empresaId, h.dia, h.activo, h.inicio, h.fin]);
+        }
+
+        // 4. Agregar Servicios Semilla
+        const serviciosSemilla = [
+            { n: 'Masaje Relajante Clásico', c: 'Relajación', d: 60, p: 50000, desc: 'Masaje corporal relajante de espalda y cuello.' },
+            { n: 'Limpieza Facial Profunda', c: 'Tratamientos', d: 45, p: 45000, desc: 'Exfoliación, hidratación y cuidado de poros.' }
+        ];
+        for (const s of serviciosSemilla) {
+            await db.run(`
+                INSERT INTO servicios (empresa_id, nombre, categoria, duracion, precio, descripcion)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `, [empresaId, s.n, s.c, s.d, s.p, s.desc]);
+        }
+
+        // 5. Crear Cuenta de Administrador
+        await db.run(`
+            INSERT INTO administradores (empresa_id, usuario, password)
+            VALUES (?, ?, ?)
+        `, [empresaId, email.trim(), password]);
+
+        await db.run('COMMIT;');
+
+        console.log(`🚀 [SaaS] Nuevo centro registrado: ${nombreNegocio} (slug: ${slug}) en plan ${plan}`);
+
+        return res.status(201).json({
+            ok: true,
+            mensaje: '¡Tu centro de estética ha sido registrado con éxito! Disfruta de 14 días de prueba gratis.',
+            datos: { slug, email }
+        });
+
+    } catch (err) {
+        try {
+            const { connectDB } = require('./database');
+            const db = await connectDB();
+            await db.run('ROLLBACK;');
+        } catch (e) {}
+        console.error('❌ Error en auto-registro SaaS:', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error interno al registrar el negocio.' });
+    }
+});
+
+app.post('/api/webhooks/payment', async (req, res) => {
+    const { slug, plan, status, transactionId } = req.body;
+
+    if (!slug || !plan || !status) {
+        return res.status(400).json({ ok: false, mensaje: 'Faltan campos requeridos en el webhook.' });
+    }
+
+    try {
+        const { connectDB } = require('./database');
+        const db = await connectDB();
+
+        const empresa = await db.get('SELECT id FROM empresas WHERE slug = ?', [slug]);
+        if (!empresa) {
+            return res.status(404).json({ ok: false, mensaje: 'Empresa no encontrada.' });
+        }
+
+        if (status === 'APPROVED') {
+            // Extender 30 días la suscripción
+            const finSuscripcion = new Date();
+            finSuscripcion.setDate(finSuscripcion.getDate() + 30);
+            const finSuscripcionStr = finSuscripcion.toISOString().split('T')[0];
+
+            await db.run(`
+                UPDATE empresas
+                SET plan_nombre = ?, suscripcion_estado = 'Active', suscripcion_fin = ?, suscripcion_activa = 1
+                WHERE id = ?
+            `, [plan, finSuscripcionStr, empresa.id]);
+
+            console.log(`💳 [SaaS Webhook] Pago aprobado para ${slug}. Plan: ${plan}. Vencimiento: ${finSuscripcionStr}`);
+            return res.status(200).json({ ok: true, mensaje: 'Suscripción activada con éxito.' });
+        } else {
+            console.warn(`💳 [SaaS Webhook] Transacción fallida o pendiente para ${slug}: ${status}`);
+            return res.status(200).json({ ok: true, mensaje: 'Webhook procesado sin cambios.' });
+        }
+
+    } catch (err) {
+        console.error('❌ Error procesando webhook de pago:', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error interno en el servidor.' });
+    }
+});
+
 app.use('/api/', tenantResolver);
+
+/**
+ * @route   GET /api/admin/suscripcion
+ * @desc    Obtiene el estado de suscripción de la empresa.
+ * @access  Admin
+ */
+app.get('/api/admin/suscripcion', async (req, res) => {
+    try {
+        const db = req.db;
+        const empresa = req.empresa;
+        
+        const info = await db.get(`
+            SELECT plan_nombre, suscripcion_estado, suscripcion_fin
+            FROM empresas
+            WHERE id = ?
+        `, [empresa.id]);
+
+        return res.status(200).json({
+            ok: true,
+            datos: {
+                plan: info.plan_nombre || 'Prueba',
+                estado: info.suscripcion_estado || 'Trial',
+                fechaFin: info.suscripcion_fin || 'Sin fecha'
+            }
+        });
+    } catch (err) {
+        console.error('Error al obtener suscripción:', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error al consultar suscripción.' });
+    }
+});
+
 app.use('/api/admin/', adminAuthMiddleware);
 app.use('/api/citas', (req, res, next) => {
     if (req.method === 'GET') {
@@ -413,7 +597,7 @@ app.use('/api/citas', (req, res, next) => {
 
 // Enrutamiento Dinámico de Clientes (Tenants)
 app.get('/', (req, res) => {
-    res.redirect('/samambaia/');
+    res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
 app.get('/:empresaSlug/', async (req, res) => {

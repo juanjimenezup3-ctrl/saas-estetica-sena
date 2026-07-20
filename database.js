@@ -32,9 +32,23 @@ async function initDB(db) {
             logo TEXT,
             telefono TEXT,
             suscripcion_activa BOOLEAN DEFAULT 1,
+            plan_nombre TEXT DEFAULT 'Prueba',
+            suscripcion_estado TEXT DEFAULT 'Trial',
+            suscripcion_fin TEXT,
             fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     `);
+
+    // Retrocompatibilidad: Añadir columnas si no existen en la base de datos sqlite ya existente
+    try {
+        await db.exec('ALTER TABLE empresas ADD COLUMN plan_nombre TEXT DEFAULT "Prueba";');
+    } catch (e) {}
+    try {
+        await db.exec('ALTER TABLE empresas ADD COLUMN suscripcion_estado TEXT DEFAULT "Trial";');
+    } catch (e) {}
+    try {
+        await db.exec('ALTER TABLE empresas ADD COLUMN suscripcion_fin TEXT;');
+    } catch (e) {}
 
     // 2. Tabla de Configuración (Automatización, GCal)
     await db.exec(`

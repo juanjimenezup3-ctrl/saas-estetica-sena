@@ -141,6 +141,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Toast container
     const toastContainer = document.getElementById('toast-container');
 
+    // SaaS Suscripción DOM
+    const subPlanName = document.getElementById('sub-plan-name');
+    const subStatus = document.getElementById('sub-status');
+    const subNextBilling = document.getElementById('sub-next-billing');
+    const btnSubUpgrade = document.getElementById('btn-sub-upgrade');
+    const btnSubPay = document.getElementById('btn-sub-pay');
+    const btnSubCancel = document.getElementById('btn-sub-cancel');
+    
+    // Pasarela de Pago (Renovación) DOM
+    const modalPasarelaRenovar = document.getElementById('modal-pasarela-renovar');
+    const btnPasarelaRenovarConfirmar = document.getElementById('btn-pasarela-renovar-confirmar');
+    const btnPasarelaRenovarCancelar = document.getElementById('btn-pasarela-renovar-cancelar');
+    const pasarelaRenovarPlanTitulo = document.getElementById('pasarela-renovar-plan-titulo');
+    const pasarelaRenovarPrecio = document.getElementById('pasarela-renovar-precio');
+
     // =================================================================
     // ESTADO DE LA APLICACIÓN
     // =================================================================
@@ -198,6 +213,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Cargar listado de fechas especiales (bloqueos y aperturas)
             await cargarFechasEspecialesLista();
+
+            // Cargar datos de la suscripción SaaS
+            await cargarDatosSuscripcion();
         } catch (error) {
             console.error('Error cargando panel admin:', error);
             alert('Error de conexión con el servidor.');
@@ -1592,6 +1610,177 @@ document.addEventListener('DOMContentLoaded', () => {
             osc2.stop(context.currentTime + 0.8);
         } catch (e) {
             console.warn('AudioContext bloqueado o no soportado en este navegador:', e);
+        } catch (e) {
+            console.warn('AudioContext bloqueado o no soportado en este navegador:', e);
         }
     }
+
+    // =================================================================
+    // GESTIÓN DE SUSCRIPCIÓN SAAS Y PASARELA DE FACTURACIÓN
+    // =================================================================
+    let planActualSaaS = 'Prueba';
+
+    async function cargarDatosSuscripcion() {
+        try {
+            const token = localStorage.getItem('admin_token');
+            const res = await fetch('/api/admin/suscripcion', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'x-tenant-slug': getTenantSlug()
+                }
+            });
+            const data = await res.json();
+
+            if (res.ok && data.ok) {
+                const info = data.datos;
+                planActualSaaS = info.plan;
+                
+                // Mapear plan
+                subPlanName.textContent = `Plan ${info.plan}`;
+                
+                // Mapear estado
+                let estadoText = 'Prueba Gratis';
+                let estadoClass = 'text-purple-700 bg-purple-50 border-purple-250';
+                if (info.estado === 'Active') {
+                    estadoText = 'Suscripción Activa';
+                    estadoClass = 'text-green-700 bg-green-50 border-green-250';
+                } else if (info.estado === 'Expired') {
+                    estadoText = 'Suscripción Vencida';
+                    estadoClass = 'text-red-700 bg-red-50 border-red-250';
+                } else if (info.estado === 'Cancelled') {
+                    estadoText = 'Cancelada';
+                    estadoClass = 'text-gray-700 bg-gray-50 border-gray-250';
+                }
+                
+                subStatus.textContent = estadoText;
+                subStatus.className = `font-bold px-2.5 py-0.5 rounded border ${estadoClass}`;
+                
+                // Mapear vencimiento
+                if (info.fechaFin) {
+                    subNextBilling.textContent = formatearFechaLarga(info.fechaFin);
+                } else {
+                    subNextBilling.textContent = 'Sin fecha';
+                }
+            }
+        } catch (err) {
+            console.error('Error al cargar datos de suscripción:', err);
+        }
+    }
+
+    // Abrir pasarela de pago para renovar
+    btnSubPay.addEventListener('click', () => {
+        pasarelaRenovarPlanTitulo.textContent = `Renovación Plan ${planActualSaaS}`;
+        pasarelaRenovarPrecio.textContent = planActualSaaS === 'Pro' ? '$67.100 COP' : '$15.200 COP';
+        modalPasarelaRenovar.classList.remove('hidden');
+    });
+
+    // Cancelar transacción en pasarela
+    btnPasarelaRenovarCancelar.addEventListener('click', () => {
+        modalPasarelaRenovar.classList.add('hidden');
+    });
+
+    // Confirmar pago en pasarela (Wompi Callback Simulado)
+    btnPasarelaRenovarConfirmar.addEventListener('click', async () => {
+        btnPasarelaRenovarConfirmar.disabled = true;
+        btnPasarelaRenovarConfirmar.textContent = 'Procesando renovación...';
+
+        try {
+            const res = await fetch('/api/webhooks/payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    slug: getTenantSlug(),
+                    plan: planActualSaaS,
+                    status: 'APPROVED',
+                    transactionId: 'WMP-REN-' + Math.floor(Math.random()*1000000)
+                })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.ok) {
+                modalPasarelaRenovar.classList.add('hidden');
+                mostrarToast('💳 Suscripción renovada con éxito por 30 días.', 'success');
+                await cargarDatosSuscripcion();
+            } else {
+                mostrarToast('Error al procesar el pago de renovación.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            mostrarToast('Error de conexión con el servidor.', 'error');
+        } finally {
+            btnPasarelaRenovarConfirmar.disabled = false;
+            btnPasarelaRenovarConfirmar.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Renovación`;
+        }
+    });
+
+    // Simular cambio de plan (Upgrade / Downgrade)
+    btnSubUpgrade.addEventListener('click', async () => {
+        const nuevoPlan = planActualSaaS === 'Pro' ? 'Emprendedor' : 'Pro';
+        if (confirm(`¿Estás segura de cambiar al ${nuevoPlan === 'Pro' ? 'Plan Pro ($67.100 COP)' : 'Plan Emprendedor ($15.200 COP)'}? El cambio se aplicará de forma inmediata.`)) {
+            try {
+                // Simular webhook de cambio de plan y pago aprobado
+                const res = await fetch('/api/webhooks/payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        slug: getTenantSlug(),
+                        plan: nuevoPlan,
+                        status: 'APPROVED',
+                        transactionId: 'WMP-UPG-' + Math.floor(Math.random()*1000000)
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.ok) {
+                    mostrarToast(`⚡ Plan cambiado con éxito a Plan ${nuevoPlan}.`, 'success');
+                    await cargarDatosSuscripcion();
+                } else {
+                    mostrarToast('Error al cambiar de plan.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                mostrarToast('Error de conexión.', 'error');
+            }
+        }
+    });
+
+    // Cancelar Suscripción (Simulación)
+    btnSubCancel.addEventListener('click', async () => {
+        if (confirm('¿Estás segura de cancelar tu suscripción? Conservarás el acceso hasta la fecha de vencimiento actual.')) {
+            mostrarToast('🛑 Suscripción cancelada. No se generarán nuevos cobros.', 'success');
+            // Simular actualización del estado en base de datos
+            try {
+                const token = localStorage.getItem('admin_token');
+                const slug = getTenantSlug();
+                
+                // Actualizamos a estado cancelado
+                await fetch('/api/webhooks/payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        slug: slug,
+                        plan: planActualSaaS,
+                        status: 'CANCELLED' // Status dummy para simular cancelación
+                    })
+                });
+                
+                // Llamamos a un update local dummy o simulado para cambiar a cancelada en DB
+                // En SQLite hacemos un update rápido
+                const res = await fetch('/api/webhooks/payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        slug: slug,
+                        plan: planActualSaaS,
+                        status: 'PENDING' // No hace nada en backend, pero ilustra
+                    })
+                });
+                
+                subStatus.textContent = 'Cancelada';
+                subStatus.className = 'font-bold px-2.5 py-0.5 rounded border text-gray-700 bg-gray-50 border-gray-250';
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    });
 });
