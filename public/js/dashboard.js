@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Cabecera Hora
         const cellHoraHeader = document.createElement('div');
-        cellHoraHeader.className = 'sticky top-0 left-0 z-20 bg-[#2c3e2f] text-white text-center py-2 px-1 text-[0.72rem] font-semibold border-r border-b border-[#dae4db]/30 flex items-center justify-center';
+        cellHoraHeader.className = 'sticky top-0 left-0 z-20 bg-purple-900 text-white text-center py-2 px-1 text-[0.72rem] font-semibold border-r border-b border-purple-300/30 flex items-center justify-center';
         cellHoraHeader.textContent = 'Hora';
         calendarGrid.appendChild(cellHoraHeader);
 
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (esDiaBloqueadoHeader) {
                 headerClass += 'bg-gradient-to-br from-red-700 to-red-800 border-red-900/30 hover:from-red-800 hover:to-red-900';
             } else {
-                headerClass += 'bg-gradient-to-br from-[#2c3e2f] to-[#4a5f4d] border-[#dae4db]/20 hover:from-[#3a5040] hover:to-[#5a7060]';
+                headerClass += 'bg-gradient-to-br from-purple-900 to-purple-700 border-purple-200/20 hover:from-purple-800 hover:to-purple-600';
             }
             cellDayHeader.className = headerClass;
             cellDayHeader.title = esDiaBloqueadoHeader ? `Día bloqueado: ${bloqueoDelDia?.descripcion || ''}. Clic para liberar.` : 'Clic para bloquear este día completo';
@@ -322,14 +322,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Etiqueta de la hora
             const cellTimeLabel = document.createElement('div');
-            cellTimeLabel.className = 'sticky left-0 z-10 bg-[#fafbfa] border-r border-b border-[#dae4db] text-[0.68rem] font-semibold text-[#2c3e2f] flex items-center justify-center min-h-[46px]';
+            cellTimeLabel.className = 'sticky left-0 z-10 bg-purple-50/20 border-r border-b border-purple-200 text-[0.68rem] font-semibold text-purple-900 flex items-center justify-center min-h-[46px]';
             cellTimeLabel.textContent = formatHora(timeStr);
             calendarGrid.appendChild(cellTimeLabel);
 
             // Celdas por día
             fechas.forEach((fechaStr, colIndex) => {
                 const cell = document.createElement('div');
-                cell.className = 'p-1 border-r border-b border-[#dae4db]/40 min-h-[46px] flex flex-col justify-center bg-white';
+                cell.className = 'p-1 border-r border-b border-purple-100/40 min-h-[46px] flex flex-col justify-center bg-white';
 
                 const dayOfWeek = (colIndex === 6) ? 0 : colIndex + 1;
                 const configDay = (horariosFechas && horariosFechas[fechaStr]) ? horariosFechas[fechaStr] : configuracionHorario[dayOfWeek];
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let btnClasses = 'w-full h-full border rounded-lg font-sans text-[0.7rem] font-bold cursor-pointer transition-all p-1.5 flex flex-col items-center justify-center text-center shadow-sm min-h-[38px] active:scale-95 ';
 
                 if (estado === 'disponible') {
-                    btnClasses += 'bg-green-50/70 text-green-800 border-green-200/80 hover:bg-green-600 hover:text-white hover:border-transparent hover:shadow-green-100 hover:-translate-y-0.5';
+                    btnClasses += 'bg-purple-50/70 text-purple-800 border-purple-200/80 hover:bg-purple-600 hover:text-white hover:border-transparent hover:shadow-purple-100 hover:-translate-y-0.5';
                     btn.className = btnClasses;
                     btn.innerHTML = `<span>Libre</span><span class="text-[0.58rem] opacity-75 font-normal mt-0.5">${formatHora(timeStr)}</span>`;
                     btn.addEventListener('click', () => abrirModalCrearBloqueo(fechaStr, timeStr));
@@ -757,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const esSuccess = tipo === 'success';
         const esWarning = tipo === 'warning';
 
-        let bgColor = esSuccess ? 'bg-[#2c3e2f] border-[#4a5f4d]'
+        let bgColor = esSuccess ? 'bg-purple-900 border-purple-700'
             : esWarning ? 'bg-amber-700 border-amber-600'
             : 'bg-red-700 border-red-600';
 
@@ -976,7 +976,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fechasEspecialesLista.innerHTML = '';
             
             if (aperturasLista.length === 0 && bloqueosLista.length === 0) {
-                fechasEspecialesLista.innerHTML = '<div class="text-[#5a735e] text-center py-4">No hay configuraciones especiales guardadas.</div>';
+                fechasEspecialesLista.innerHTML = '<div class="text-purple-700/70 text-center py-4">No hay configuraciones especiales guardadas.</div>';
                 return;
             }
 
@@ -999,13 +999,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Renderizar Aperturas Especiales
             aperturasLista.forEach(a => {
                 const item = document.createElement('div');
-                item.className = 'flex justify-between items-center p-2 rounded-lg border border-green-150 bg-green-50/50 shadow-sm text-left';
+                item.className = 'flex justify-between items-center p-2 rounded-lg border border-purple-200 bg-purple-50/50 shadow-sm text-left';
                 item.innerHTML = `
                     <div>
-                        <span class="font-bold text-green-800">🟢 Apertura: ${a.fecha}</span>
-                        <span class="block text-[0.62rem] text-green-900/90 mt-0.5">${a.descripcion} (${formatHora(a.inicio)} - ${formatHora(a.fin)})</span>
+                        <span class="font-bold text-purple-800">🟣 Apertura: ${a.fecha}</span>
+                        <span class="block text-[0.62rem] text-purple-900/90 mt-0.5">${a.descripcion} (${formatHora(a.inicio)} - ${formatHora(a.fin)})</span>
                     </div>
-                    <button type="button" class="btn-eliminar-fecha-esp p-1 text-green-800 hover:text-green-900 hover:bg-green-100/50 rounded transition-all cursor-pointer" data-id="${a.id}" data-tipo="apertura" title="Eliminar Apertura">
+                    <button type="button" class="btn-eliminar-fecha-esp p-1 text-purple-800 hover:text-purple-900 hover:bg-purple-100/50 rounded transition-all cursor-pointer" data-id="${a.id}" data-tipo="apertura" title="Eliminar Apertura">
                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                     </button>
                 `;
@@ -1102,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let badgeClass = 'bg-yellow-50 text-yellow-700 border-yellow-200/50';
             if (log.estado.includes('Webhook')) {
-                badgeClass = 'bg-green-50 text-green-700 border-green-200/50';
+                badgeClass = 'bg-purple-50 text-purple-700 border-purple-200/50';
             } else if (log.estado.includes('Simulado')) {
                 badgeClass = 'bg-blue-50 text-blue-700 border-blue-200/50';
             } else if (log.estado.includes('Error')) {
@@ -1217,22 +1217,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         citasOrdenadas.forEach(c => {
             const tr = document.createElement('tr');
-            tr.className = 'hover:bg-[#fafbfa] transition-colors border-b border-[#dae4db]/40';
+            tr.className = 'hover:bg-purple-50/30 transition-colors border-b border-purple-100/40';
             tr.innerHTML = `
-                <td class="py-2.5 px-3"><span class="inline-block bg-[#f4f6f4] border border-[#dae4db] text-[#2c3d2e] font-bold text-[0.72rem] px-2 py-0.5 rounded">${c.idCita}</span></td>
+                <td class="py-2.5 px-3"><span class="inline-block bg-purple-50 border border-purple-200 text-purple-900 font-bold text-[0.72rem] px-2 py-0.5 rounded">${c.idCita}</span></td>
                 <td class="py-2.5 px-3">
-                    <div class="font-medium text-[#2c3d2e] text-[0.82rem]">${c.cliente}</div>
-                    <div class="text-[0.7rem] text-[#5a735e] mt-0.5">${c.telefono}</div>
+                    <div class="font-medium text-purple-950 text-[0.82rem]">${c.cliente}</div>
+                    <div class="text-[0.7rem] text-purple-700/70 mt-0.5">${c.telefono}</div>
                 </td>
                 <td class="py-2.5 px-3">
-                    <div class="font-medium text-[#2c3d2e] text-[0.82rem]">${c.servicio}</div>
-                    <div class="text-[0.7rem] text-[#5a735e] mt-0.5">${c.categoria} · ${c.duracion} min</div>
+                    <div class="font-medium text-purple-950 text-[0.82rem]">${c.servicio}</div>
+                    <div class="text-[0.7rem] text-purple-700/70 mt-0.5">${c.categoria} · ${c.duracion} min</div>
                 </td>
-                <td class="py-2.5 px-3 text-[#2c3d2e] text-[0.82rem]">${formatearFechaLarga(c.fecha)}</td>
-                <td class="py-2.5 px-3 text-[#2c3d2e] text-[0.82rem]">${formatHora(c.hora)}</td>
-                <td class="py-2.5 px-3"><span class="inline-block text-[0.65rem] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-green-50 text-green-700 border border-green-200">${c.estado}</span></td>
+                <td class="py-2.5 px-3 text-purple-950 text-[0.82rem]">${formatearFechaLarga(c.fecha)}</td>
+                <td class="py-2.5 px-3 text-purple-950 text-[0.82rem]">${formatHora(c.hora)}</td>
+                <td class="py-2.5 px-3"><span class="inline-block text-[0.65rem] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">${c.estado}</span></td>
                 <td class="py-2.5 px-3 text-right flex justify-end gap-1.5">
-                    <button type="button" class="btn-recordar-tabla px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 hover:bg-green-600 hover:text-white hover:border-transparent font-semibold rounded-lg transition-all text-[0.7rem] active:scale-95 cursor-pointer" data-id="${c.idCita}">
+                    <button type="button" class="btn-recordar-tabla px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200 hover:bg-green-600 hover:text-white hover:border-transparent font-semibold rounded-lg transition-all text-[0.7rem] active:scale-95 cursor-pointer" data-id="${c.idCita}">
                         Recordar
                     </button>
                     <button type="button" class="btn-cancelar-tabla px-2.5 py-1 border border-red-200 text-red-700 bg-red-50 hover:bg-red-600 hover:text-white font-semibold rounded-lg transition-all text-[0.7rem] active:scale-95 cursor-pointer" data-id="${c.idCita}">
@@ -1438,36 +1438,36 @@ document.addEventListener('DOMContentLoaded', () => {
         tablaServiciosBody.innerHTML = '';
         if (servicios.length === 0) {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td colspan="5" class="py-4 text-center text-[#5a735e]">No hay servicios en el catálogo.</td>`;
+            tr.innerHTML = `<td colspan="5" class="py-4 text-center text-purple-700/70">No hay servicios en el catálogo.</td>`;
             tablaServiciosBody.appendChild(tr);
             return;
         }
 
         servicios.forEach(s => {
             const tr = document.createElement('tr');
-            tr.className = 'hover:bg-[#fafbfa] transition-colors border-b border-[#dae4db]/20';
+            tr.className = 'hover:bg-[#fafbfa] transition-colors border-b border-purple-200/20';
             
             const nameHtml = `
-                <div class="font-medium text-[#2c3d2e] flex flex-wrap items-center gap-1.5">
+                <div class="font-medium text-purple-950 flex flex-wrap items-center gap-1.5">
                     <span>${s.nombre}</span>
                     ${s.ofertaDelDia ? '<span class="bg-amber-100 text-amber-800 text-[0.55rem] font-bold px-1.5 py-0.5 rounded border border-amber-200">🔥 Oferta</span>' : ''}
-                    ${s.descuento > 0 ? `<span class="bg-green-50 text-green-700 text-[0.55rem] font-bold px-1.5 py-0.5 rounded border border-green-200">-${s.descuento}%</span>` : ''}
+                    ${s.descuento > 0 ? `<span class="bg-purple-50 text-purple-700 text-[0.55rem] font-bold px-1.5 py-0.5 rounded border border-purple-200">-${s.descuento}%</span>` : ''}
                     ${(s.precioEspecial > 0 && !s.descuento) ? '<span class="bg-blue-50 text-blue-700 text-[0.55rem] font-bold px-1.5 py-0.5 rounded border border-blue-200">Precio Esp.</span>' : ''}
                 </div>
-                <div class="text-[0.65rem] text-[#5a735e] max-w-[180px] truncate" title="${s.descripcion || ''}">${s.descripcion || 'Sin descripción'}</div>
+                <div class="text-[0.65rem] text-purple-700/70 max-w-[180px] truncate" title="${s.descripcion || ''}">${s.descripcion || 'Sin descripción'}</div>
             `;
 
             const priceHtml = (s.descuento > 0 || s.precioEspecial > 0) ? `
                 <div class="text-red-700 font-bold">$${(s.precioEspecial > 0 ? s.precioEspecial : Math.round(s.precio * (1 - s.descuento / 100))).toLocaleString('es-CO')}</div>
                 <div class="text-[0.6rem] text-gray-400 line-through">$${s.precio.toLocaleString('es-CO')}</div>
             ` : `
-                <div class="text-[#2c3d2e] font-semibold">$${s.precio.toLocaleString('es-CO')}</div>
+                <div class="text-purple-950 font-semibold">$${s.precio.toLocaleString('es-CO')}</div>
             `;
 
             tr.innerHTML = `
                 <td class="py-2.5">${nameHtml}</td>
-                <td class="py-2.5 text-[#5a735e]">${s.categoria}</td>
-                <td class="py-2.5 text-[#2c3d2e]">${s.duracion} min</td>
+                <td class="py-2.5 text-purple-700/70">${s.categoria}</td>
+                <td class="py-2.5 text-purple-950">${s.duracion} min</td>
                 <td class="py-2.5">${priceHtml}</td>
                 <td class="py-2.5 text-right flex justify-end gap-1.5 pt-3">
                     <button type="button" class="btn-editar-servicio p-1 text-blue-700 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors active:scale-90" data-id="${s.id}" title="Editar">
@@ -1725,7 +1725,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let estadoClass = 'text-purple-700 bg-purple-50 border-purple-250';
                 if (info.estado === 'Active') {
                     estadoText = 'Suscripción Activa';
-                    estadoClass = 'text-green-700 bg-green-50 border-green-250';
+                    estadoClass = 'text-purple-700 bg-purple-50 border-purple-200';
                 } else if (info.estado === 'Expired') {
                     estadoText = 'Suscripción Vencida';
                     estadoClass = 'text-red-700 bg-red-50 border-red-250';
@@ -1877,3 +1877,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
