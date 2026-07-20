@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bookingSuccessWrapper = document.getElementById('booking-success-wrapper');
     const btnNewBooking = document.getElementById('btn-new-booking');
     const btnAddGcal = document.getElementById('btn-add-gcal');
+    const btnConfirmWhatsapp = document.getElementById('btn-confirm-whatsapp');
 
     const summaryId = document.getElementById('summary-id');
     const summaryNombre = document.getElementById('summary-nombre');
@@ -312,17 +313,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. LOGICA Y RENDERIZADO DEL CALENDARIO
     // =================================================================
     async function cargarCalendarioSemanal() {
-        // Si no hay servicio seleccionado, mostrar mensaje guía
-        if (!servicioSeleccionado) {
-            publicCalendarGrid.innerHTML = `
-                <div style="grid-column: 1 / -1; padding: 2.5rem 1rem; text-align: center; color: #6b47a0;">
-                    <div style="font-size: 2rem; margin-bottom: 0.75rem;">📅</div>
-                    <p style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.35rem;">Selecciona un servicio primero</p>
-                    <p style="font-size: 0.75rem; color: #8a7a9a; max-width: 280px; margin: 0 auto;">Elige el servicio que deseas en el Paso 1 y el calendario mostrará los horarios disponibles automáticamente.</p>
-                </div>`;
-            return;
-        }
-
         try {
             publicCalendarGrid.innerHTML = '<div style="grid-column: 1 / -1; padding: 2rem; text-align: center;">Cargando horarios disponibles...</div>';
 
@@ -515,9 +505,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function seleccionarHorario(fecha, hora) {
         if (!servicioSeleccionado) {
-            alert('Por favor, selecciona primero un servicio en el Paso 1 para ver disponibilidad y programar tu cita.');
+            alert('Por favor, selecciona primero un servicio en el "Paso 1" para ver la duración y confirmar tu cita.');
             selectServicio.focus();
             selectServicio.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Animación de parpadeo y ring rojo para guiar el ojo del cliente
+            selectServicio.classList.add('ring-4', 'ring-red-400', 'transition-all');
+            setTimeout(() => {
+                selectServicio.classList.remove('ring-4', 'ring-red-400');
+            }, 2500);
             return;
         }
         // Guardar valores en campos ocultos del formulario
@@ -700,6 +696,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Generar y asociar el enlace de Google Calendar
         btnAddGcal.href = generarEnlaceGoogleCalendar(cita);
+
+        // Generar enlace de notificación por WhatsApp
+        const mensajeWhatsApp = `¡Hola! 🌸 Acabo de reservar una cita en *SamambaiaSpa*:\n\n` +
+            `🆔 *Código:* ${cita.idCita}\n` +
+            `👤 *Cliente:* ${cita.nombre}\n` +
+            `💆 *Servicio:* ${cita.servicio}\n` +
+            `📅 *Fecha:* ${formatearFechaLarga(cita.fecha)}\n` +
+            `⏰ *Hora:* ${formatHora(cita.hora)}\n\n` +
+            `Por favor confirmen mi espacio. ¡Muchas gracias! 💜`;
+            
+        btnConfirmWhatsapp.href = `https://wa.me/573001234567?text=${encodeURIComponent(mensajeWhatsApp)}`;
 
         bookingFormWrapper.classList.add('hidden');
         bookingSuccessWrapper.classList.remove('hidden');

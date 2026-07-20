@@ -207,6 +207,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializar el panel
     cargarPanelAdmin();
 
+    // Loop de verificación en segundo plano cada 25 segundos para detectar nuevas citas
+    setInterval(async () => {
+        try {
+            const resSemana = await fetch(`/api/calendario-semana?fecha=${fechaReferencia}`);
+            const dataSemana = await resSemana.json();
+            if (resSemana.ok && dataSemana.ok) {
+                const { citas, bloqueos } = dataSemana.datos;
+                
+                // Comparar si hay nuevas citas (basado en IDs públicos)
+                const idsExistentes = new Set(citasGlobal.map(c => c.idCita));
+                const nuevasCitasDetectadas = citas.filter(c => !idsExistentes.has(c.idCita));
+                
+                if (nuevasCitasDetectadas.length > 0) {
+                    reproducirSonidoNotificacion();
+                    nuevasCitasDetectadas.forEach(cita => {
+                        mostrarToast(`🔔 Nueva cita: ${cita.cliente} reservó ${cita.servicio} el ${formatearFechaLarga(cita.fecha)} a las ${formatHora(cita.hora)}`, 'success', 6000);
+                    });
+                    
+                    // Actualizar estado y re-renderizar
+                    citasGlobal = citas;
+                    bloqueosGlobal = bloqueos;
+                    renderizarGridAdmin(dataSemana.datos);
+                    renderizarListadoGeneralCitas(citas);
+                    actualizarEstadisticas(citas);
+                }
+            }
+        } catch (err) {
+            console.warn('Error al chequear nuevas citas en segundo plano:', err);
+        }
+    }, 25000);
+
     // =================================================================
     // RENDERIZADO DEL GRID DE CALENDARIO (ADMIN)
     // =================================================================
@@ -1524,6 +1555,43 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Error al eliminar servicio:', err);
             mostrarToast('Error de conexión.', 'error');
+        }
+    }
+
+    // =================================================================
+    // GENERADOR DE SONIDO DE NOTIFICACIÓN
+    // =================================================================
+    function reproducirSonidoNotificacion() {
+        try {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Primer tono (G5)
+            const osc1 = context.createOscillator();
+            const gain1 = context.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(784.00, context.currentTime); // G5
+            gain1.gain.setValueAtTime(0.08, context.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.00001, context.currentTime + 0.6);
+            osc1.connect(gain1);
+            gain1.connect(context.destination);
+            
+            // Segundo tono (C6) un poco después
+            const osc2 = context.createOscillator();
+            const gain2 = context.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(1046.50, context.currentTime + 0.12); // C6
+            gain2.gain.setValueAtTime(0, context.currentTime);
+            gain2.gain.setValueAtTime(0.1, context.currentTime + 0.12);
+            gain2.gain.exponentialRampToValueAtTime(0.00001, context.currentTime + 0.8);
+            osc2.connect(gain2);
+            gain2.connect(context.destination);
+            
+            osc1.start(context.currentTime);
+            osc1.stop(context.currentTime + 0.6);
+            osc2.start(context.currentTime + 0.12);
+            osc2.stop(context.currentTime + 0.8);
+        } catch (e) {
+            console.warn('AudioContext bloqueado o no soportado en este navegador:', e);
         }
     }
 });
