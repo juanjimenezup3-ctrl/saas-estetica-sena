@@ -247,13 +247,35 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="flex flex-col gap-0.5">${priceHtml}</div>
                         <span class="servicio-tag tag-duracion">⏱️ ${s.duracion} min</span>
                     </div>
+                    <button type="button" class="btn-reservar-servicio w-full mt-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer" data-id="${s.id}">
+                        <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                        Reservar Ahora
+                    </button>
                 `;
-                // Al hacer click en una tarjeta, la selecciona en el formulario y hace scroll
-                card.addEventListener('click', () => {
+                // Clic en la tarjeta (body) — selecciona el servicio
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.btn-reservar-servicio')) return; // El botón maneja el clic
                     selectServicio.value = s.id;
                     selectServicio.dispatchEvent(new Event('change'));
                     document.getElementById('agendar').scrollIntoView({ behavior: 'smooth' });
                 });
+                // Botón "Reservar Ahora" — selecciona el servicio y hace scroll al calendario con highlight
+                card.querySelector('.btn-reservar-servicio').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectServicio.value = s.id;
+                    selectServicio.dispatchEvent(new Event('change'));
+                    // Scroll al calendario
+                    const calContainer = document.getElementById('calendar-container');
+                    if (calContainer) {
+                        calContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        // Highlight animado
+                        calContainer.classList.add('ring-2', 'ring-purple-400', 'ring-offset-2', 'rounded-2xl', 'transition-all');
+                        setTimeout(() => calContainer.classList.remove('ring-2', 'ring-purple-400', 'ring-offset-2'), 2000);
+                    } else {
+                        document.getElementById('agendar').scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+                lucide.createIcons();
                 grid.appendChild(card);
             });
 
@@ -290,6 +312,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. LOGICA Y RENDERIZADO DEL CALENDARIO
     // =================================================================
     async function cargarCalendarioSemanal() {
+        // Si no hay servicio seleccionado, mostrar mensaje guía
+        if (!servicioSeleccionado) {
+            publicCalendarGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 2.5rem 1rem; text-align: center; color: #6b47a0;">
+                    <div style="font-size: 2rem; margin-bottom: 0.75rem;">📅</div>
+                    <p style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.35rem;">Selecciona un servicio primero</p>
+                    <p style="font-size: 0.75rem; color: #8a7a9a; max-width: 280px; margin: 0 auto;">Elige el servicio que deseas en el Paso 1 y el calendario mostrará los horarios disponibles automáticamente.</p>
+                </div>`;
+            return;
+        }
+
         try {
             publicCalendarGrid.innerHTML = '<div style="grid-column: 1 / -1; padding: 2rem; text-align: center;">Cargando horarios disponibles...</div>';
 

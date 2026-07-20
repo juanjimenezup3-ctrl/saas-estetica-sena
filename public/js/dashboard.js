@@ -106,11 +106,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalShareTel = document.getElementById('modal-share-tel');
     const modalShareBtnWhatsapp = document.getElementById('modal-share-btn-whatsapp');
 
+    // Nuevos campos para bloqueo por rango de horas y botón rápido
+    const btnBloquearFranjaRapido = document.getElementById('btn-bloquear-franja-rapido');
+    const modalBlockFechaSelector = document.getElementById('modal-block-fecha-selector');
+    const modalBlockFechaInput = document.getElementById('modal-block-fecha-input');
+    const modalBlockSlotInfo = document.getElementById('modal-block-slot-info');
+    const modalBlockHoraInicio = document.getElementById('modal-block-hora-inicio');
+    const modalBlockHoraFin = document.getElementById('modal-block-hora-fin');
+    const lblBlockDuracionCalc = document.getElementById('lbl-block-duracion-calc');
+    const modalBlockCompartir = document.getElementById('modal-block-compartir');
+
     const modalLiberarBloqueo = document.getElementById('modal-liberar-bloqueo');
     const modalLiberarId = document.getElementById('modal-liberar-id');
     const lblLiberarDetalle = document.getElementById('lbl-liberar-detalle');
     const modalLiberarBtnCerrar = document.getElementById('modal-liberar-btn-cerrar');
     const modalLiberarBtnConfirmar = document.getElementById('modal-liberar-btn-confirmar');
+
+    // Modal bloqueo de día completo (desde cabecera del calendario)
+    const modalBlockDia = document.getElementById('modal-block-dia');
+    const modalBlockDiaFecha = document.getElementById('modal-block-dia-fecha');
+    const modalBlockDiaBloqueoId = document.getElementById('modal-block-dia-bloqueo-id');
+    const lblBlockDiaFecha = document.getElementById('lbl-block-dia-fecha');
+    const lblBlockDiaMotivo = document.getElementById('lbl-block-dia-motivo');
+    const modalBlockDiaTitulo = document.getElementById('modal-block-dia-titulo');
+    const modalBlockDiaSubtitulo = document.getElementById('modal-block-dia-subtitulo');
+    const modalBlockDiaIcon = document.getElementById('modal-block-dia-icon');
+    const modalBlockDiaFormBloquear = document.getElementById('modal-block-dia-form-bloquear');
+    const modalBlockDiaFormLiberar = document.getElementById('modal-block-dia-form-liberar');
+    const modalBlockDiaDesc = document.getElementById('modal-block-dia-desc');
+    const btnConfirmarBlockDia = document.getElementById('btn-confirmar-block-dia');
+    const btnLiberarBlockDia = document.getElementById('btn-liberar-block-dia');
+    const modalBlockDiaBtnCerrar = document.getElementById('modal-block-dia-btn-cerrar');
+
+    // Toast container
+    const toastContainer = document.getElementById('toast-container');
 
     // =================================================================
     // ESTADO DE LA APLICACIÓN
@@ -194,11 +223,29 @@ document.addEventListener('DOMContentLoaded', () => {
         cellHoraHeader.textContent = 'Hora';
         calendarGrid.appendChild(cellHoraHeader);
 
-        // Cabecera Días
+        // Cabecera Días — clickeables para bloquear/liberar el día completo
         fechas.forEach(f => {
+            const esDiaBloqueadoHeader = bloqueos.filter(b => b.fecha === f).some(b => b.tipo === 'dia');
+            const bloqueoDelDia = bloqueos.filter(b => b.fecha === f).find(b => b.tipo === 'dia');
+
             const cellDayHeader = document.createElement('div');
-            cellDayHeader.className = 'sticky top-0 z-10 bg-gradient-to-br from-[#2c3e2f] to-[#4a5f4d] text-white text-center py-2 px-1 text-[0.72rem] font-semibold border-r border-b border-[#dae4db]/20 flex flex-col items-center justify-center min-h-[52px]';
-            cellDayHeader.innerHTML = formatFechaEspanolCorta(f);
+            let headerClass = 'sticky top-0 z-10 text-white text-center py-2 px-1 text-[0.72rem] font-semibold border-r border-b flex flex-col items-center justify-center min-h-[52px] cursor-pointer select-none transition-all group ';
+            if (esDiaBloqueadoHeader) {
+                headerClass += 'bg-gradient-to-br from-red-700 to-red-800 border-red-900/30 hover:from-red-800 hover:to-red-900';
+            } else {
+                headerClass += 'bg-gradient-to-br from-[#2c3e2f] to-[#4a5f4d] border-[#dae4db]/20 hover:from-[#3a5040] hover:to-[#5a7060]';
+            }
+            cellDayHeader.className = headerClass;
+            cellDayHeader.title = esDiaBloqueadoHeader ? `Día bloqueado: ${bloqueoDelDia?.descripcion || ''}. Clic para liberar.` : 'Clic para bloquear este día completo';
+
+            const blockIndicator = esDiaBloqueadoHeader
+                ? '<span class="text-[0.5rem] bg-red-500/60 px-1.5 py-0.5 rounded-full mt-0.5 font-bold tracking-wide">🚫 BLOQUEADO</span>'
+                : '<span class="text-[0.5rem] opacity-0 group-hover:opacity-60 transition-opacity mt-0.5 font-normal">🔒 bloquear</span>';
+
+            cellDayHeader.innerHTML = formatFechaEspanolCorta(f) + blockIndicator;
+            cellDayHeader.addEventListener('click', () => {
+                abrirModalBloquearDia(f, bloqueoDelDia);
+            });
             calendarGrid.appendChild(cellDayHeader);
         });
 
@@ -374,19 +421,86 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 2. Modal crear bloqueo de franja
+    // 2. Modal crear bloqueo de franja
     function abrirModalCrearBloqueo(fecha, hora) {
         modalBlockFecha.value = fecha;
         modalBlockHora.value = hora;
-        lblBlockFecha.textContent = formatearFechaLarga(fecha);
-        lblBlockHora.textContent = formatHora(hora);
+
+        // Si tenemos fecha y hora fijas, estamos en modo celda
+        if (fecha && hora) {
+            lblBlockFecha.textContent = formatearFechaLarga(fecha);
+            lblBlockHora.textContent = formatHora(hora);
+            
+            modalBlockSlotInfo.classList.remove('hidden');
+            modalBlockFechaSelector.classList.add('hidden');
+            modalBlockCompartir.classList.remove('hidden');
+            
+            modalBlockHoraInicio.value = hora;
+            
+            // Fin sugerido: 30 minutos después
+            const mins = timeToMinutes(hora);
+            modalBlockHoraFin.value = minutesToTime(mins + 30);
+        } else {
+            // Modo Rápido (sin celda inicial clickeada)
+            const hoy = obtenerFechaActualISO();
+            modalBlockFechaInput.value = hoy;
+            modalBlockFecha.value = hoy;
+            modalBlockHora.value = '08:00';
+            
+            modalBlockSlotInfo.classList.add('hidden');
+            modalBlockFechaSelector.classList.remove('hidden');
+            modalBlockCompartir.classList.add('hidden');
+            
+            modalBlockHoraInicio.value = '08:00';
+            modalBlockHoraFin.value = '09:00';
+        }
         
-        // Reset
-        document.getElementById('modal-block-duracion').value = '30';
         document.getElementById('modal-block-desc').value = '';
         modalShareTel.value = '';
+        actualizarDuracionCalculada();
         
         modalBloqueo.classList.remove('hidden');
     }
+
+    // Botón de acceso rápido
+    btnBloquearFranjaRapido.addEventListener('click', () => {
+        abrirModalCrearBloqueo(null, null);
+    });
+
+    // Actualiza la fecha cuando se cambia en el selector de modo rápido
+    modalBlockFechaInput.addEventListener('change', () => {
+        modalBlockFecha.value = modalBlockFechaInput.value;
+    });
+
+    // Calcular y mostrar duración calculada
+    function actualizarDuracionCalculada() {
+        const inicioVal = modalBlockHoraInicio.value;
+        const finVal = modalBlockHoraFin.value;
+        if (!inicioVal || !finVal) {
+            lblBlockDuracionCalc.textContent = '';
+            return;
+        }
+
+        const minsInicio = timeToMinutes(inicioVal);
+        const minsFin = timeToMinutes(finVal);
+        const duracion = minsFin - minsInicio;
+
+        if (duracion <= 0) {
+            lblBlockDuracionCalc.innerHTML = '<span class="text-red-600 font-bold">⚠️ La hora de fin debe ser posterior a la de inicio</span>';
+        } else {
+            const horas = (duracion / 60).toFixed(1);
+            lblBlockDuracionCalc.innerHTML = `Duración estimada: <strong>${duracion} minutos</strong> (${horas} hs)`;
+        }
+    }
+
+    modalBlockHoraInicio.addEventListener('change', () => {
+        // Sugerir hora fin automáticamente 30 minutos después
+        const mins = timeToMinutes(modalBlockHoraInicio.value);
+        modalBlockHoraFin.value = minutesToTime(mins + 30);
+        actualizarDuracionCalculada();
+    });
+
+    modalBlockHoraFin.addEventListener('change', actualizarDuracionCalculada);
 
     modalBlockBtnCerrar.addEventListener('click', () => {
         modalBloqueo.classList.add('hidden');
@@ -420,12 +534,23 @@ document.addEventListener('DOMContentLoaded', () => {
     formCrearBloqueoFranja.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        const inicioVal = modalBlockHoraInicio.value;
+        const finVal = modalBlockHoraFin.value;
+        const minsInicio = timeToMinutes(inicioVal);
+        const minsFin = timeToMinutes(finVal);
+        const duracion = minsFin - minsInicio;
+
+        if (duracion <= 0) {
+            mostrarToast('⚠️ La hora de fin debe ser posterior a la de inicio.', 'error');
+            return;
+        }
+
         const payload = {
             tipo: 'franja',
             fecha: modalBlockFecha.value,
-            hora: modalBlockHora.value,
-            duracion: document.getElementById('modal-block-duracion').value,
-            descripcion: document.getElementById('modal-block-desc').value.trim()
+            hora: inicioVal,
+            duracion: duracion,
+            descripcion: document.getElementById('modal-block-desc').value.trim() || 'Bloqueo Manual'
         };
 
         try {
@@ -438,17 +563,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (res.ok && data.ok) {
                 modalBloqueo.classList.add('hidden');
+                mostrarToast('🚫 Franja bloqueada exitosamente.', 'success');
                 cargarPanelAdmin();
             } else {
-                alert(data.mensaje || 'Error al bloquear el horario.');
+                mostrarToast(data.mensaje || 'Error al bloquear el horario.', 'error');
             }
         } catch (err) {
             console.error(err);
-            alert('Error de conexión.');
+            mostrarToast('Error de conexión.', 'error');
         }
     });
 
-    // 3. Modal liberar bloqueo
+    // 3. Modal liberar bloqueo de franja
     function abrirModalLiberarBloqueo(bloqueo) {
         modalLiberarId.value = bloqueo.id;
         lblLiberarDetalle.textContent = `${bloqueo.tipo === 'dia' ? 'Día Completo' : 'Franja'} - ${bloqueo.descripcion} el ${formatearFechaLarga(bloqueo.fecha)} ${bloqueo.hora ? 'a las ' + formatHora(bloqueo.hora) : ''}`;
@@ -469,15 +595,122 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (res.ok && data.ok) {
                 modalLiberarBloqueo.classList.add('hidden');
+                mostrarToast('✅ Horario liberado correctamente.', 'success');
                 cargarPanelAdmin();
             } else {
-                alert(data.mensaje || 'Error al liberar el horario.');
+                mostrarToast(data.mensaje || 'Error al liberar el horario.', 'error');
             }
         } catch (err) {
             console.error(err);
-            alert('Error de conexión.');
+            mostrarToast('Error de conexión.', 'error');
         }
     });
+
+    // 4. Modal bloqueo de DÍA COMPLETO (desde cabecera del calendario)
+    function abrirModalBloquearDia(fecha, bloqueoExistente) {
+        modalBlockDiaFecha.value = fecha;
+        lblBlockDiaFecha.textContent = formatearFechaLarga(fecha);
+        modalBlockDiaDesc.value = '';
+
+        if (bloqueoExistente) {
+            // Modo liberar
+            modalBlockDiaBloqueoId.value = bloqueoExistente.id;
+            modalBlockDiaTitulo.textContent = 'Día Bloqueado';
+            modalBlockDiaSubtitulo.textContent = 'Puedes liberar este día para que vuelva a atender';
+            modalBlockDiaIcon.className = 'w-10 h-10 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600';
+            modalBlockDiaIcon.innerHTML = '<i data-lucide="calendar-check" class="w-5 h-5"></i>';
+            lblBlockDiaMotivo.textContent = bloqueoExistente.descripcion || 'Día bloqueado';
+            modalBlockDiaFormBloquear.classList.add('hidden');
+            modalBlockDiaFormLiberar.classList.remove('hidden');
+        } else {
+            // Modo bloquear
+            modalBlockDiaBloqueoId.value = '';
+            modalBlockDiaTitulo.textContent = 'Bloquear Día Completo';
+            modalBlockDiaSubtitulo.textContent = 'El spa no atenderá en esta fecha';
+            modalBlockDiaIcon.className = 'w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-red-600';
+            modalBlockDiaIcon.innerHTML = '<i data-lucide="calendar-x" class="w-5 h-5"></i>';
+            modalBlockDiaFormBloquear.classList.remove('hidden');
+            modalBlockDiaFormLiberar.classList.add('hidden');
+        }
+
+        modalBlockDia.classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    modalBlockDiaBtnCerrar.addEventListener('click', () => {
+        modalBlockDia.classList.add('hidden');
+    });
+
+    btnConfirmarBlockDia.addEventListener('click', async () => {
+        const fecha = modalBlockDiaFecha.value;
+        const descripcion = modalBlockDiaDesc.value.trim() || 'Día bloqueado';
+
+        try {
+            const res = await fetch('/api/admin/bloquear', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tipo: 'dia', fecha, descripcion })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.ok) {
+                modalBlockDia.classList.add('hidden');
+                mostrarToast(`🚫 Día ${formatearFechaLarga(fecha)} bloqueado exitosamente.`, 'success');
+                cargarPanelAdmin();
+            } else {
+                mostrarToast(data.mensaje || 'Error al bloquear el día.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            mostrarToast('Error de conexión.', 'error');
+        }
+    });
+
+    btnLiberarBlockDia.addEventListener('click', async () => {
+        const id = modalBlockDiaBloqueoId.value;
+        try {
+            const res = await fetch(`/api/admin/bloquear/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+
+            if (res.ok && data.ok) {
+                modalBlockDia.classList.add('hidden');
+                mostrarToast('✅ Día liberado. El spa vuelve a atender en esta fecha.', 'success');
+                cargarPanelAdmin();
+            } else {
+                mostrarToast(data.mensaje || 'Error al liberar el día.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            mostrarToast('Error de conexión.', 'error');
+        }
+    });
+
+    // =================================================================
+    // SISTEMA DE TOASTS (reemplaza alert() nativo)
+    // =================================================================
+    function mostrarToast(mensaje, tipo = 'success', duracion = 3500) {
+        const toast = document.createElement('div');
+        const esSuccess = tipo === 'success';
+        const esWarning = tipo === 'warning';
+
+        let bgColor = esSuccess ? 'bg-[#2c3e2f] border-[#4a5f4d]'
+            : esWarning ? 'bg-amber-700 border-amber-600'
+            : 'bg-red-700 border-red-600';
+
+        toast.className = `pointer-events-auto flex items-start gap-3 px-4 py-3.5 rounded-2xl border shadow-2xl text-white text-xs font-semibold max-w-[320px] animate-scale-up transition-all ${bgColor}`;
+        toast.innerHTML = `
+            <span class="flex-1 leading-relaxed">${mensaje}</span>
+            <button type="button" onclick="this.parentElement.remove()" class="flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity mt-0.5 cursor-pointer">✕</button>
+        `;
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(8px)';
+            toast.style.transition = 'opacity 0.3s, transform 0.3s';
+            setTimeout(() => toast.remove(), 350);
+        }, duracion);
+    }
 
     // =================================================================
     // CONFIGURACIÓN DE OPERACIÓN DIARIA
@@ -539,10 +772,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     
                     if (res.ok && data.ok) {
-                        alert(`Horario de ${nombresDiasSemana[dia]} actualizado correctamente.`);
+                        mostrarToast(`✅ Horario de ${nombresDiasSemana[dia]} actualizado.`, 'success');
                         cargarPanelAdmin();
                     } else {
-                        alert(data.mensaje || 'Error al actualizar configuración.');
+                        mostrarToast(data.mensaje || 'Error al actualizar configuración.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
@@ -583,12 +816,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 if (res.ok && data.ok) {
-                    alert(`Día ${fecha} bloqueado exitosamente.`);
+                    mostrarToast(`🚫 Día ${fecha} bloqueado exitosamente.`, 'success');
                     formFechaEspecial.reset();
                     wrapperHorasEspeciales.classList.add('hidden');
                     cargarPanelAdmin();
                 } else {
-                    alert(data.mensaje || 'Error al registrar bloqueo.');
+                    mostrarToast(data.mensaje || 'Error al registrar bloqueo.', 'error');
                 }
             } catch (err) {
                 console.error(err);
@@ -612,12 +845,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 if (res.ok && data.ok) {
-                    alert(`Día especial ${fecha} habilitado de ${formatHora(inicio)} a ${formatHora(fin)}.`);
+                    mostrarToast(`🟢 Día especial ${fecha} habilitado de ${formatHora(inicio)} a ${formatHora(fin)}.`, 'success');
                     formFechaEspecial.reset();
                     wrapperHorasEspeciales.classList.add('hidden');
                     cargarPanelAdmin();
                 } else {
-                    alert(data.mensaje || 'Error al registrar la apertura especial.');
+                    mostrarToast(data.mensaje || 'Error al registrar la apertura especial.', 'error');
                 }
             } catch (err) {
                 console.error(err);
@@ -1255,18 +1488,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (res.ok && data.ok) {
-                alert(data.mensaje);
+                mostrarToast(`✅ ${data.mensaje}`, 'success');
                 modalServicio.classList.add('hidden');
                 formServicio.reset();
-                // Recargar catálogo e interactuar con el panel principal
                 await cargarServiciosCatalog();
-                cargarPanelAdmin(); // Recarga calendario/panel ya que duraciones pueden cambiar
+                cargarPanelAdmin();
             } else {
-                alert(data.mensaje || 'Error al guardar el servicio.');
+                mostrarToast(data.mensaje || 'Error al guardar el servicio.', 'error');
             }
         } catch (err) {
             console.error('Error al guardar servicio:', err);
-            alert('Error de conexión con el servidor.');
+            mostrarToast('Error de conexión con el servidor.', 'error');
         }
     });
 
@@ -1283,15 +1515,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (res.ok && data.ok) {
-                alert(data.mensaje);
+                mostrarToast(`🗑️ ${data.mensaje}`, 'success');
                 await cargarServiciosCatalog();
                 cargarPanelAdmin();
             } else {
-                alert(data.mensaje || 'Error al eliminar el servicio.');
+                mostrarToast(data.mensaje || 'Error al eliminar el servicio.', 'error');
             }
         } catch (err) {
             console.error('Error al eliminar servicio:', err);
-            alert('Error de conexión.');
+            mostrarToast('Error de conexión.', 'error');
         }
     }
 });
