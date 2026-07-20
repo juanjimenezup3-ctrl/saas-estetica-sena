@@ -177,6 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
         0: 'Domingo'
     };
 
+    function getTenantSlug() {
+        const pathParts = window.location.pathname.split('/').filter(p => p);
+        // En el dashboard, la ruta suele ser /:slug/dashboard, por lo que el primer elemento es el slug
+        return pathParts[0] || 'samambaia';
+    }
+
     // =================================================================
     // CARGAR DATOS GENERALES
     // =================================================================
@@ -772,27 +778,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const ordenDias = [1, 2, 3, 4, 5, 6, 0];
         
         ordenDias.forEach(diaKey => {
-            const config = configHorarioGlobal[diaKey];
-            if (!config) return;
+            // Si no hay configuración previa en base de datos, proveemos valores por defecto (de 8am a 5pm inactivo)
+            const config = configHorarioGlobal[diaKey] || { activo: false, inicio: '08:00', fin: '17:00' };
 
             const tr = document.createElement('tr');
-            tr.className = 'hover:bg-[#fafbfa] transition-colors border-b border-[#dae4db]/40';
+            tr.className = 'hover:bg-purple-50/20 transition-colors border-b border-purple-100/40';
             tr.innerHTML = `
-                <td class="py-2.5 text-[#2c3d2e]"><strong>${nombresDiasSemana[diaKey]}</strong></td>
+                <td class="py-2.5 text-purple-950"><strong>${nombresDiasSemana[diaKey]}</strong></td>
                 <td class="py-2.5">
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="activo-${diaKey}" class="sr-only peer" ${config.activo ? 'checked' : ''}>
-                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
                     </label>
                 </td>
                 <td class="py-2.5">
-                    <input type="time" class="px-2 py-1 border border-[#dae4db] rounded-lg text-xs bg-[#fafbfa] focus:outline-none focus:ring-1 focus:ring-green-600 text-[#2c3d2e] font-sans" id="inicio-${diaKey}" value="${config.inicio}">
+                    <input type="time" class="px-2 py-1 border border-purple-200 rounded-lg text-xs bg-[#faf7fc] focus:outline-none focus:ring-1 focus:ring-purple-600 text-purple-950 font-sans" id="inicio-${diaKey}" value="${config.inicio}">
                 </td>
                 <td class="py-2.5">
-                    <input type="time" class="px-2 py-1 border border-[#dae4db] rounded-lg text-xs bg-[#fafbfa] focus:outline-none focus:ring-1 focus:ring-green-600 text-[#2c3d2e] font-sans" id="fin-${diaKey}" value="${config.fin}">
+                    <input type="time" class="px-2 py-1 border border-purple-200 rounded-lg text-xs bg-[#faf7fc] focus:outline-none focus:ring-1 focus:ring-purple-600 text-purple-950 font-sans" id="fin-${diaKey}" value="${config.fin}">
                 </td>
                 <td class="py-2.5 text-right">
-                    <button type="button" class="btn-save-config px-3 py-1 bg-white text-[#2c3e2f] border border-[#dae4db] hover:bg-[#2c3e2f] hover:text-white hover:border-transparent font-semibold rounded-lg transition-all text-[0.7rem] active:scale-95 cursor-pointer" data-dia="${diaKey}">
+                    <button type="button" class="btn-save-config px-3 py-1 bg-white text-purple-700 border border-purple-200 hover:bg-purple-800 hover:text-white hover:border-transparent font-semibold rounded-lg transition-all text-[0.7rem] active:scale-95 cursor-pointer" data-dia="${diaKey}">
                         Guardar
                     </button>
                 </td>
