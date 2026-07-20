@@ -29,14 +29,18 @@
     <header class="sticky top-0 z-50 bg-purple-950/85 backdrop-blur-md border-b border-purple-900/40 shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
             <div class="flex items-center gap-3">
+                <div id="header-logo-generic" class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-800 to-purple-950 flex items-center justify-center text-white font-bold hidden shadow">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                </div>
                 <img 
+                    id="header-logo-img"
                     src="/images/logo-samambaia.png" 
-                    alt="SamambaiaSpa" 
+                    alt="Logo" 
                     class="w-12 h-12 rounded-full border-2 border-purple-400/35 object-fit bg-white hover:scale-105 transition-transform"
                 >
                 <div>
-                    <h1 class="text-2xl font-serif font-light text-white tracking-wide">SamambaiaSpa</h1>
-                    <p class="text-[0.68rem] uppercase tracking-widest text-purple-300 font-semibold">Tu Belleza en mis manos</p>
+                    <h1 id="header-nombre-spa" class="text-2xl font-serif font-light text-white tracking-wide">EstéticaSaaS</h1>
+                    <p id="header-slogan" class="text-[0.68rem] uppercase tracking-widest text-purple-300 font-semibold">Tu Belleza en mis manos</p>
                 </div>
             </div>
             
@@ -446,11 +450,14 @@
     <!-- ============================================== -->
     <footer class="bg-gradient-to-b from-purple-950 to-purple-deep text-white text-center py-10 border-t-4 border-purple-mid px-4 space-y-4">
         <div class="flex flex-col items-center gap-2">
-            <img src="/images/logo-samambaia.png" alt="SamambaiaSpa" class="w-14 h-14 rounded-full border border-purple-400/30 object-fit bg-white hover:scale-105 transition-all">
-            <h3 class="font-serif text-lg tracking-wider text-purple-100">SamambaiaSpa</h3>
+            <div id="footer-logo-generic" class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-white hidden">
+                <i data-lucide="sparkles" class="w-6 h-6"></i>
+            </div>
+            <img id="footer-logo-img" src="/images/logo-samambaia.png" alt="Logo" class="w-14 h-14 rounded-full border border-purple-400/30 object-fit bg-white hover:scale-105 transition-all">
+            <h3 id="footer-nombre-spa" class="font-serif text-lg tracking-wider text-purple-100">EstéticaSaaS</h3>
         </div>
         <div class="text-[0.82rem] font-light opacity-80 space-y-1">
-            <p>© 2026 SamambaiaSpa - Todos los derechos reservados.</p>
+            <p>© 2026 <span id="footer-nombre-spa-copyright">EstéticaSaaS</span> - Todos los derechos reservados.</p>
             <p class="text-[0.68rem] tracking-widest text-purple-300 font-semibold uppercase">Proyecto Productivo SENA — Formato GFPI-F-144</p>
         </div>
     </footer>

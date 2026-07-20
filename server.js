@@ -336,7 +336,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Servir archivos estáticos del Frontend desde la carpeta 'public'
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // =====================================================================
 // HEALTH CHECK — Requerido por Render, Railway y otros hostings cloud
@@ -613,6 +613,7 @@ app.get('/api/admin/suscripcion', async (req, res) => {
         return res.status(200).json({
             ok: true,
             datos: {
+                nombreEmpresa: empresa.nombre,
                 plan: info.plan_nombre || 'Prueba',
                 estado: info.suscripcion_estado || 'Trial',
                 fechaFin: info.suscripcion_fin || 'Sin fecha'
@@ -711,6 +712,31 @@ app.post('/api/admin/login', async (req, res) => {
     } catch (err) {
         console.error('Login error:', err.message);
         return res.status(500).json({ ok: false, mensaje: 'Error al procesar el inicio de sesión.' });
+    }
+});
+
+/**
+ * @route   GET /api/empresa-info
+ * @desc    Devuelve nombre, slogan, teléfono y logo del spa para el branding dinámico del cliente.
+ * @access  Público
+ */
+app.get('/api/empresa-info', async (req, res) => {
+    try {
+        const empresa = req.empresa;
+
+        res.json({
+            ok: true,
+            datos: {
+                nombre: empresa.nombre,
+                slogan: empresa.descripcion || 'Tu Belleza en mis manos',
+                telefono: empresa.telefono || '',
+                logoUrl: empresa.logo || null,
+                slug: empresa.slug
+            }
+        });
+    } catch (err) {
+        console.error('Error en /api/empresa-info:', err.message);
+        res.status(500).json({ ok: false, mensaje: 'Error al obtener información del spa.' });
     }
 });
 

@@ -1611,8 +1611,6 @@ document.addEventListener('DOMContentLoaded', () => {
             osc2.stop(context.currentTime + 0.8);
         } catch (e) {
             console.warn('AudioContext bloqueado o no soportado en este navegador:', e);
-        } catch (e) {
-            console.warn('AudioContext bloqueado o no soportado en este navegador:', e);
         }
     }
 
@@ -1635,6 +1633,38 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok && data.ok) {
                 const info = data.datos;
                 planActualSaaS = info.plan;
+                
+                // Mapear marca del spa dinámicamente
+                const nombreSpa = info.nombreEmpresa || 'EstéticaSaaS';
+                document.title = `${nombreSpa} — Panel de Administración`;
+                
+                const headerNombre = document.getElementById('header-nombre-spa');
+                if (headerNombre) headerNombre.textContent = nombreSpa;
+                
+                const footerNombre = document.getElementById('footer-nombre-spa');
+                if (footerNombre) footerNombre.textContent = nombreSpa;
+                
+                const footerCopyright = document.getElementById('footer-nombre-spa-copyright');
+                if (footerCopyright) footerCopyright.textContent = nombreSpa;
+
+                // Cambiar logotipos si es marca blanca (no piloto)
+                const slug = getTenantSlug();
+                const headerLogoImg = document.getElementById('header-logo-img');
+                const headerLogoGeneric = document.getElementById('header-logo-generic');
+                const footerLogoImg = document.getElementById('footer-logo-img');
+                const footerLogoGeneric = document.getElementById('footer-logo-generic');
+
+                if (slug !== 'samambaia') {
+                    if (headerLogoImg) headerLogoImg.classList.add('hidden');
+                    if (headerLogoGeneric) headerLogoGeneric.classList.remove('hidden');
+                    if (footerLogoImg) footerLogoImg.classList.add('hidden');
+                    if (footerLogoGeneric) footerLogoGeneric.classList.remove('hidden');
+                } else {
+                    if (headerLogoImg) headerLogoImg.classList.remove('hidden');
+                    if (headerLogoGeneric) headerLogoGeneric.classList.add('hidden');
+                    if (footerLogoImg) footerLogoImg.classList.remove('hidden');
+                    if (footerLogoGeneric) footerLogoGeneric.classList.add('hidden');
+                }
                 
                 // Mapear plan
                 subPlanName.textContent = `Plan ${info.plan}`;

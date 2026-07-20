@@ -34,13 +34,17 @@
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#dae4db] shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
             <div class="flex items-center gap-3">
+                <div id="header-logo-generic" class="w-12 h-12 rounded-full bg-gradient-to-br from-[#2c3e2f] to-[#4a5f4d] flex items-center justify-center text-white font-bold hidden shadow">
+                    <i data-lucide="building" class="w-5 h-5"></i>
+                </div>
                 <img 
+                    id="header-logo-img"
                     src="/images/logo-samambaia.png" 
-                    alt="SamambaiaSpa" 
+                    alt="Logo" 
                     class="w-12 h-12 rounded-full border border-[#dae4db] object-fit bg-white hover:scale-105 transition-transform"
                 >
                 <div>
-                    <h1 class="text-xl font-serif text-[#2c3e2f] tracking-wide">SamambaiaSpa</h1>
+                    <h1 id="header-nombre-spa" class="text-xl font-serif text-[#2c3e2f] tracking-wide">EstéticaSaaS</h1>
                     <p class="text-[0.68rem] uppercase tracking-widest text-[#4a5f4d] font-semibold">Panel Administrativo Privado</p>
                 </div>
             </div>
@@ -213,15 +217,15 @@
 
                 <!-- GESTIÓN DEL CATÁLOGO DE SERVICIOS -->
                 <section class="bg-white border border-[#dae4db] p-6 rounded-3xl shadow-sm space-y-4">
-                    <div class="flex items-center justify-between pb-2 border-b border-[#dae4db]">
+                    <div class="flex items-center justify-between pb-2 border-b border-purple-100">
                         <div class="space-y-1">
-                            <h3 class="text-lg font-serif text-[#2c3e2f] flex items-center gap-2">
-                                <i data-lucide="sparkles" class="text-[#4a5f4d]"></i>
+                            <h3 class="text-lg font-serif text-purple-950 flex items-center gap-2">
+                                <i data-lucide="sparkles" class="text-purple-600"></i>
                                 Catálogo de Servicios
                             </h3>
-                            <p class="text-xs text-[#5a735e]">Agrega, edita o elimina servicios del spa en tiempo real.</p>
+                            <p class="text-xs text-purple-700/70">Agrega, edita o elimina servicios del spa en tiempo real.</p>
                         </div>
-                        <button type="button" id="btn-agregar-servicio" class="px-3 py-1.5 bg-[#2c3e2f] hover:bg-[#202e22] text-white font-semibold rounded-xl text-xs flex items-center gap-1 active:scale-95 transition-all cursor-pointer">
+                        <button type="button" id="btn-agregar-servicio" class="px-3 py-1.5 bg-purple-800 hover:bg-purple-900 text-white font-semibold rounded-xl text-xs flex items-center gap-1 active:scale-95 transition-all cursor-pointer">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                             Agregar
                         </button>
@@ -412,10 +416,10 @@
 
                     <div class="space-y-2 pt-1">
                         <div class="grid grid-cols-2 gap-2">
-                            <button type="button" id="btn-sub-upgrade" class="py-2.5 bg-[#f4f6f4] hover:bg-[#e4e9e4] border border-[#dae4db] text-[#2c3d2e] font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer">
+                            <button type="button" id="btn-sub-upgrade" class="py-2.5 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer">
                                 Cambiar Plan
                             </button>
-                            <button type="button" id="btn-sub-pay" class="py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                            <button type="button" id="btn-sub-pay" class="py-2.5 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-bold rounded-xl text-xs active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5">
                                 <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
                                 Pagar / Renovar
                             </button>
@@ -675,21 +679,21 @@
     <!-- MODAL: CREAR / EDITAR SERVICIO                 -->
     <!-- ============================================== -->
     <div id="modal-servicio" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden animate-fade-in">
-        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-[#dae4db] transform transition-all animate-scale-up space-y-5 text-[#2c3d2e]">
-            <h4 class="text-xl font-serif text-[#2c3e2f] border-b border-[#dae4db] pb-2" id="modal-servicio-titulo">Nuevo Servicio</h4>
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-purple-100 transform transition-all animate-scale-up space-y-5 text-purple-950">
+            <h4 class="text-xl font-serif text-purple-950 border-b border-purple-100 pb-2" id="modal-servicio-titulo">Nuevo Servicio</h4>
             
             <form id="form-servicio" class="space-y-4">
                 <input type="hidden" id="modal-servicio-id">
                 
                 <div class="space-y-3.5 text-xs">
                     <div class="space-y-1">
-                        <label for="modal-servicio-nombre" class="block font-semibold text-[#2c3d2e]">Nombre del Servicio:</label>
-                        <input type="text" id="modal-servicio-nombre" required placeholder="Ej. Uñas Semipermanentes" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                        <label for="modal-servicio-nombre" class="block font-semibold text-purple-900">Nombre del Servicio:</label>
+                        <input type="text" id="modal-servicio-nombre" required placeholder="Ej. Uñas Semipermanentes" class="w-full px-3.5 py-2.5 bg-[#faf7fc] border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all text-xs text-purple-950">
                     </div>
 
                     <div class="space-y-1">
-                        <label for="modal-servicio-categoria" class="block font-semibold text-[#2c3d2e]">Categoría:</label>
-                        <select id="modal-servicio-categoria" required class="w-full px-3.5 py-2.5 bg-white border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                        <label for="modal-servicio-categoria" class="block font-semibold text-purple-900">Categoría:</label>
+                        <select id="modal-servicio-categoria" required class="w-full px-3.5 py-2.5 bg-white border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all text-xs text-purple-950">
                             <option value="Uñas">Uñas</option>
                             <option value="Tratamientos">Tratamientos</option>
                             <option value="Relajación">Relajación</option>
@@ -698,61 +702,61 @@
 
                     <div class="grid grid-cols-2 gap-3.5">
                         <div class="space-y-1">
-                            <label for="modal-servicio-duracion" class="block font-semibold text-[#2c3d2e]">Duración (minutos):</label>
-                            <input type="number" id="modal-servicio-duracion" required min="5" max="300" step="5" placeholder="Ej. 60" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                            <label for="modal-servicio-duracion" class="block font-semibold text-purple-900">Duración (minutos):</label>
+                            <input type="number" id="modal-servicio-duracion" required min="5" max="300" step="5" placeholder="Ej. 60" class="w-full px-3.5 py-2.5 bg-[#faf7fc] border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all text-xs text-purple-950">
                         </div>
                         <div class="space-y-1">
-                            <label for="modal-servicio-precio" class="block font-semibold text-[#2c3d2e]">Precio (COP):</label>
-                            <input type="number" id="modal-servicio-precio" required min="1000" step="500" placeholder="Ej. 35000" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                            <label for="modal-servicio-precio" class="block font-semibold text-purple-900">Precio (COP):</label>
+                            <input type="number" id="modal-servicio-precio" required min="1000" step="500" placeholder="Ej. 35000" class="w-full px-3.5 py-2.5 bg-[#faf7fc] border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all text-xs text-purple-950">
                         </div>
                     </div>
 
                     <div class="space-y-1">
-                        <label for="modal-servicio-descripcion" class="block font-semibold text-[#2c3d2e]">Descripción:</label>
-                        <textarea id="modal-servicio-descripcion" rows="3" placeholder="Descripción corta del servicio y beneficios..." class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e] leading-relaxed" style="resize:none;"></textarea>
+                        <label for="modal-servicio-descripcion" class="block font-semibold text-purple-900">Descripción:</label>
+                        <textarea id="modal-servicio-descripcion" rows="3" placeholder="Descripción corta del servicio y beneficios..." class="w-full px-3.5 py-2.5 bg-[#faf7fc] border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all text-xs text-purple-950 leading-relaxed" style="resize:none;"></textarea>
                     </div>
 
                     <!-- Campos de oferta y descuentos especiales -->
-                    <div class="flex flex-col gap-2 p-3 bg-[#fafbfa] border border-[#dae4db] rounded-xl mt-2">
+                    <div class="flex flex-col gap-2 p-3 bg-purple-50/50 border border-purple-100 rounded-xl mt-2">
                         <div class="flex items-center gap-2 mb-1">
-                            <input type="checkbox" id="modal-servicio-oferta-dia" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
-                            <label for="modal-servicio-oferta-dia" class="font-semibold text-[#2c3d2e] select-none cursor-pointer">Marcar como Oferta del Día (Solo Hoy) 🔥</label>
+                            <input type="checkbox" id="modal-servicio-oferta-dia" class="w-4 h-4 text-purple-600 border-purple-300 rounded focus:ring-purple-500">
+                            <label for="modal-servicio-oferta-dia" class="font-semibold text-purple-900 select-none cursor-pointer">Marcar como Oferta del Día (Solo Hoy) 🔥</label>
                         </div>
                         
-                        <div class="flex items-center gap-2 border-t border-[#dae4db] pt-2">
-                            <input type="checkbox" id="modal-servicio-oferta-fechas" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
-                            <label for="modal-servicio-oferta-fechas" class="font-semibold text-[#2c3d2e] select-none cursor-pointer">Promoción por Fechas Específicas 📅</label>
+                        <div class="flex items-center gap-2 border-t border-purple-100 pt-2">
+                            <input type="checkbox" id="modal-servicio-oferta-fechas" class="w-4 h-4 text-purple-600 border-purple-300 rounded focus:ring-purple-500">
+                            <label for="modal-servicio-oferta-fechas" class="font-semibold text-purple-900 select-none cursor-pointer">Promoción por Fechas Específicas 📅</label>
                         </div>
                         
                         <div id="modal-servicio-fechas-rango" class="grid grid-cols-2 gap-3.5 hidden mt-1">
                             <div class="space-y-1">
-                                <label for="modal-servicio-oferta-inicio" class="block font-semibold text-[#2c3d2e] text-[0.65rem]">Fecha Inicio:</label>
-                                <input type="date" id="modal-servicio-oferta-inicio" class="w-full px-2 py-1.5 bg-white border border-[#dae4db] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 text-xs text-[#2c3d2e]">
+                                <label for="modal-servicio-oferta-inicio" class="block font-semibold text-purple-900 text-[0.65rem]">Fecha Inicio:</label>
+                                <input type="date" id="modal-servicio-oferta-inicio" class="w-full px-2 py-1.5 bg-white border border-purple-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-600 text-xs text-purple-950">
                             </div>
                             <div class="space-y-1">
-                                <label for="modal-servicio-oferta-fin" class="block font-semibold text-[#2c3d2e] text-[0.65rem]">Fecha Fin:</label>
-                                <input type="date" id="modal-servicio-oferta-fin" class="w-full px-2 py-1.5 bg-white border border-[#dae4db] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 text-xs text-[#2c3d2e]">
+                                <label for="modal-servicio-oferta-fin" class="block font-semibold text-purple-900 text-[0.65rem]">Fecha Fin:</label>
+                                <input type="date" id="modal-servicio-oferta-fin" class="w-full px-2 py-1.5 bg-white border border-purple-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-600 text-xs text-purple-950">
                             </div>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3.5">
                         <div class="space-y-1">
-                            <label for="modal-servicio-descuento" class="block font-semibold text-[#2c3d2e]">Descuento (%):</label>
-                            <input type="number" id="modal-servicio-descuento" min="0" max="100" placeholder="Ej. 15" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                            <label for="modal-servicio-descuento" class="block font-semibold text-purple-900">Descuento (%):</label>
+                            <input type="number" id="modal-servicio-descuento" min="0" max="100" placeholder="Ej. 15" class="w-full px-3.5 py-2.5 bg-[#faf7fc] border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all text-xs text-purple-950">
                         </div>
                         <div class="space-y-1">
-                            <label for="modal-servicio-precio-esp" class="block font-semibold text-[#2c3d2e]">Precio Especial (COP):</label>
-                            <input type="number" id="modal-servicio-precio-esp" min="0" step="500" placeholder="Ej. 20000" class="w-full px-3.5 py-2.5 bg-[#fafbfa] border border-[#dae4db] rounded-xl focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all text-xs text-[#2c3d2e]">
+                            <label for="modal-servicio-precio-esp" class="block font-semibold text-purple-900">Precio Especial (COP):</label>
+                            <input type="number" id="modal-servicio-precio-esp" min="0" step="500" placeholder="Ej. 20000" class="w-full px-3.5 py-2.5 bg-[#faf7fc] border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all text-xs text-purple-950">
                         </div>
                     </div>
                 </div>
                 
                 <div class="flex gap-2.5 pt-2">
-                    <button type="button" id="modal-servicio-btn-cerrar" class="w-1/2 py-2.5 border border-[#dae4db] text-[#4a5f4d] hover:bg-[#f4f6f4] font-semibold rounded-full active:scale-95 transition-all text-xs cursor-pointer">
+                    <button type="button" id="modal-servicio-btn-cerrar" class="w-1/2 py-2.5 border border-purple-200 text-purple-700 hover:bg-purple-50 font-semibold rounded-full active:scale-95 transition-all text-xs cursor-pointer">
                         Cancelar
                     </button>
-                    <button type="submit" class="w-1/2 py-2.5 bg-[#2c3e2f] hover:bg-[#202e22] text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs cursor-pointer">
+                    <button type="submit" class="w-1/2 py-2.5 bg-purple-800 hover:bg-purple-900 text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs cursor-pointer">
                         Guardar
                     </button>
                 </div>
@@ -763,16 +767,19 @@
     <!-- ============================================== -->
     <!-- FOOTER                                         -->
     <!-- ============================================== -->
-    <footer class="bg-[#2c3e2f] text-white text-center py-10 border-t-4 border-[#4a5f4d] px-4 space-y-4 mt-12">
+    <footer class="bg-gradient-to-b from-purple-950 to-purple-deep text-white text-center py-10 border-t-4 border-purple-800/30 px-4 space-y-4 mt-12">
         <div class="flex flex-col items-center gap-2">
-            <img src="/images/logo-samambaia.png" alt="SamambaiaSpa" class="w-14 h-14 rounded-full border border-white/20 object-fit bg-white hover:scale-105 transition-all">
-            <h3 class="font-serif text-lg tracking-wider text-white">SamambaiaSpa</h3>
+            <div id="footer-logo-generic" class="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center text-white hidden">
+                <i data-lucide="building" class="w-6 h-6"></i>
+            </div>
+            <img id="footer-logo-img" src="/images/logo-samambaia.png" alt="Logo" class="w-14 h-14 rounded-full border border-white/20 object-fit bg-white hover:scale-105 transition-all">
+            <h3 id="footer-nombre-spa" class="font-serif text-lg tracking-wider text-white">EstéticaSaaS</h3>
         </div>
         <div class="text-[0.82rem] font-light opacity-80 space-y-1">
-            <p>© 2026 SamambaiaSpa - Todos los derechos reservados.</p>
-            <p class="text-[0.68rem] tracking-widest text-[#b0c4b1] font-semibold uppercase">Proyecto Productivo SENA — Formato GFPI-F-144</p>
+            <p>© 2026 <span id="footer-nombre-spa-copyright">EstéticaSaaS</span> - Todos los derechos reservados.</p>
+            <p class="text-[0.68rem] tracking-widest text-purple-300 font-semibold uppercase">Proyecto Productivo SENA — Formato GFPI-F-144</p>
         </div>
-    <!-- ============================================== -->
+    </footer>
     <!-- MODAL: PASARELA DE PAGO WOMPI (SANDBOX RENEWAL) -->
     <!-- ============================================== -->
     <div id="modal-pasarela-renovar" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden animate-fade-in">

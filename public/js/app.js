@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let catalogoServicios = [];
     let fechaReferencia = obtenerFechaActualISO(); // YYYY-MM-DD de hoy
     let servicioSeleccionado = null;
+    let datosEmpresaGlobal = null;
 
     // Calcula el precio final de un servicio aplicando descuentos o precios especiales
     function calcularPrecioFinal(s) {
@@ -285,8 +286,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Inicializar catálogo
-    cargarCatalogoServicios();
+    async function cargarDatosEmpresa() {
+        try {
+            const res = await fetch('/api/empresa-info', {
+                headers: { 'x-tenant-slug': getTenantSlug() }
+            });
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                datosEmpresaGlobal = data.datos;
+                const nombreSpa = datosEmpresaGlobal.nombre || 'EstéticaSaaS';
+                
+                // Actualizar títulos
+                document.title = `${nombreSpa} — Reservas en línea`;
+                
+                const headerNombre = document.getElementById('header-nombre-spa');
+                if (headerNombre) headerNombre.textContent = nombreSpa;
+                
+                const headerSlogan = document.getElementById('header-slogan');
+                if (headerSlogan) headerSlogan.textContent = datosEmpresaGlobal.descripcion || 'Tu Belleza en mis manos';
+                
+                const footerNombre = document.getElementById('footer-nombre-spa');
+                if (footerNombre) footerNombre.textContent = nombreSpa;
+                
+                const footerCopyright = document.getElementById('footer-nombre-spa-copyright');
+                if (footerCopyright) footerCopyright.textContent = nombreSpa;
+                
+                // Mostrar logos correspondientes
+                const headerLogoImg = document.getElementById('header-logo-img');
+                const headerLogoGeneric = document.getElementById('header-logo-generic');
+                const footerLogoImg = document.getElementById('footer-logo-img');
+                const footerLogoGeneric = document.getElementById('footer-logo-generic');
+                
+                const slug = getTenantSlug();
+                if (slug !== 'samambaia') {
+                    if (headerLogoImg) headerLogoImg.classList.add('hidden');
+                    if (headerLogoGeneric) headerLogoGeneric.classList.remove('hidden');
+                    if (footerLogoImg) footerLogoImg.classList.add('hidden');
+                    if (footerLogoGeneric) footerLogoGeneric.classList.remove('hidden');
+                } else {
+                    if (headerLogoImg) headerLogoImg.classList.remove('hidden');
+                    if (headerLogoGeneric) headerLogoGeneric.classList.add('hidden');
+                    if (footerLogoImg) footerLogoImg.classList.remove('hidden');
+                    if (footerLogoGeneric) footerLogoGeneric.classList.add('hidden');
+                }
+            }
+        } catch (err) {
+            console.error('Error al cargar información de la empresa:', err);
+        }
+    }
+
+    // Inicializar catálogo y empresa
+    (async () => {
+        await cargarDatosEmpresa();
+        await cargarCatalogoServicios();
+    })();
 
     // Evento selector servicio
     selectServicio.addEventListener('change', () => {
@@ -698,7 +751,15 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAddGcal.href = generarEnlaceGoogleCalendar(cita);
 
         // Generar enlace de notificación por WhatsApp
-        const mensajeWhatsApp = `¡Hola! 🌸 Acabo de reservar una cita en *SamambaiaSpa*:\n\n` +
+        const nombreEmpresa = (datosEmpresaGlobal && datosEmpresaGlobal.nombre) ? datosEmpresaGlobal.nombre : 'EstéticaSaaS';
+        const telEmpresa = (datosEmpresaGlobal && datosEmpresaGlobal.telefono) ? datosEmpresaGlobal.telefono : '3000000000';
+        
+        let telClean = telEmpresa.replace(/[^0-9]/g, '');
+        if (telClean.length === 10 && telClean.startsWith('3')) {
+            telClean = '57' + telClean;
+        }
+
+        const mensajeWhatsApp = `¡Hola! 🌸 Acabo de reservar una cita en *${nombreEmpresa}*:\n\n` +
             `🆔 *Código:* ${cita.idCita}\n` +
             `👤 *Cliente:* ${cita.nombre}\n` +
             `💆 *Servicio:* ${cita.servicio}\n` +
@@ -706,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `⏰ *Hora:* ${formatHora(cita.hora)}\n\n` +
             `Por favor confirmen mi espacio. ¡Muchas gracias! 💜`;
             
-        btnConfirmWhatsapp.href = `https://wa.me/573001234567?text=${encodeURIComponent(mensajeWhatsApp)}`;
+        btnConfirmWhatsapp.href = `https://wa.me/${telClean}?text=${encodeURIComponent(mensajeWhatsApp)}`;
 
         bookingFormWrapper.classList.add('hidden');
         bookingSuccessWrapper.classList.remove('hidden');
@@ -850,15 +911,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const startStr = formatGCal(dateStart);
         const endStr = formatGCal(dateEnd);
 
+        const nombreEmpresa = (datosEmpresaGlobal && datosEmpresaGlobal.nombre) ? datosEmpresaGlobal.nombre : 'EstéticaSaaS';
+
         const titulo = encodeURIComponent(`Cita Spa: ${cita.nombre || cita.cliente} (${cita.servicio})`);
         const detalles = encodeURIComponent(
             `💆 Servicio: ${cita.servicio}\n` +
             `👤 Cliente: ${cita.nombre || cita.cliente}\n` +
             `📞 Teléfono: ${cita.telefono}\n` +
             `🆔 ID Cita: ${cita.idCita}\n\n` +
-            `*Agendado en SamambaiaSpa*`
+            `*Agendado vía ${nombreEmpresa}*`
         );
-        const ubicacion = encodeURIComponent("Calle Jardín Botánico #45, Sector Laurel");
+        const ubicacion = encodeURIComponent(datosEmpresaGlobal && datosEmpresaGlobal.descripcion || "Calle Jardín Botánico #45, Sector Laurel");
 
         return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titulo}&dates=${startStr}/${endStr}&details=${detalles}&location=${ubicacion}`;
     }
