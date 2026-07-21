@@ -329,6 +329,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (footerLogoImg) footerLogoImg.classList.remove('hidden');
                     if (footerLogoGeneric) footerLogoGeneric.classList.add('hidden');
                 }
+                // Actualizar enlace del Dashboard dinámicamente
+                const btnOpenDashboard = document.getElementById('btn-open-dashboard');
+                if (btnOpenDashboard) {
+                    btnOpenDashboard.href = `/${slug}/dashboard`;
+                }
             }
         } catch (err) {
             console.error('Error al cargar información de la empresa:', err);

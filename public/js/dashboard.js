@@ -18,7 +18,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Interceptor global de Fetch para inyectar x-tenant-slug automáticamente
+    // Interceptor global de Fetch para inyectar x-tenant-slug automáticamente y capturar 401
     (function() {
         const originalFetch = window.fetch;
         window.fetch = async function(url, options = {}) {
@@ -40,8 +40,88 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-            return originalFetch(url, options);
+            const response = await originalFetch(url, options);
+            if (response.status === 401 && typeof url === 'string' && !url.includes('/api/admin/login')) {
+                localStorage.removeItem('admin_token');
+                mostrarLoginModal();
+            }
+            return response;
         };
+    })();
+
+    // Elementos del Modal de Login de Seguridad
+    const dashLoginModal = document.getElementById('dashboard-login-modal');
+    const dashLoginForm = document.getElementById('dashboard-login-form');
+    const dashLoginUser = document.getElementById('dash-login-user');
+    const dashLoginPass = document.getElementById('dash-login-password');
+
+    function mostrarLoginModal() {
+        if (dashLoginModal) {
+            dashLoginModal.classList.remove('hidden');
+        }
+    }
+
+    function ocultarLoginModal() {
+        if (dashLoginModal) {
+            dashLoginModal.classList.add('hidden');
+        }
+    }
+
+    // Evento de Login del Dashboard
+    if (dashLoginForm) {
+        dashLoginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const usuario = dashLoginUser.value.trim();
+            const password = dashLoginPass.value;
+
+            const btnSubmit = dashLoginForm.querySelector('button[type="submit"]');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = 'Ingresando...';
+
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, password })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.ok) {
+                    localStorage.setItem('admin_token', data.token);
+                    ocultarLoginModal();
+                    await cargarPanelAdmin();
+                    mostrarToast('🔑 Sesión iniciada con éxito.', 'success');
+                } else {
+                    mostrarToast(data.mensaje || 'Credenciales incorrectas.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                mostrarToast('Error de conexión con el servidor.', 'error');
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i data-lucide="log-in" class="w-4 h-4"></i> Ingresar al Panel';
+                lucide.createIcons();
+            }
+        });
+    }
+
+    // Auto-login si viene de la landing page con credenciales demo en sessionStorage
+    (function checkDemoAutologin() {
+        const demoUser = sessionStorage.getItem('demo_user');
+        const demoPass = sessionStorage.getItem('demo_pass');
+        if (demoUser && demoPass) {
+            sessionStorage.removeItem('demo_user');
+            sessionStorage.removeItem('demo_pass');
+            if (dashLoginUser && dashLoginPass) {
+                dashLoginUser.value = demoUser;
+                dashLoginPass.value = demoPass;
+                setTimeout(() => {
+                    if (dashLoginForm) {
+                        dashLoginForm.dispatchEvent(new Event('submit'));
+                    }
+                }, 300);
+            }
+        }
     })();
 
     // Inicializar iconos de Lucide
@@ -237,8 +317,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Inicializar el panel
-    cargarPanelAdmin();
+    // Inicializar el panel comprobando autenticación primero
+    const initialToken = localStorage.getItem('admin_token');
+    if (!initialToken) {
+        mostrarLoginModal();
+    } else {
+        cargarPanelAdmin();
+    }
 
     // Loop de verificación en segundo plano cada 25 segundos para detectar nuevas citas
     setInterval(async () => {

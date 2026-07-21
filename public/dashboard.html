@@ -886,29 +886,45 @@
         </div>
     </div>
 
+    <!-- ============================================== -->
+    <!-- MODAL DE INICIO DE SESIÓN DE SEGURIDAD (ADMIN) -->
+    <!-- ============================================== -->
+    <div id="dashboard-login-modal" class="fixed inset-0 bg-[#000000]/80 backdrop-blur-md flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-sm shadow-2xl border border-purple-100 transform transition-all space-y-4 text-purple-950">
+            <div class="text-center space-y-1">
+                <h4 class="text-xl font-bold font-serif text-[#3b0764]">Acceso Administrativo</h4>
+                <p class="text-xs text-[#6d28d9]">Ingresa tus credenciales para administrar la agenda</p>
+            </div>
+            
+            <!-- Banner de credenciales demo para facilitar la evaluación -->
+            <div class="p-3 bg-purple-50 border border-purple-150 rounded-xl text-center space-y-1">
+                <p class="text-[0.65rem] font-bold text-[#6d28d9] uppercase tracking-wide">💡 Credenciales Demo Habilitadas</p>
+                <p class="text-[0.7rem] text-purple-900 font-mono">admin@demoestetica.com | 123456</p>
+            </div>
+
+            <form id="dashboard-login-form" class="space-y-4">
+                <div class="space-y-1 text-xs">
+                    <label for="dash-login-user" class="block font-semibold text-purple-950">Usuario o Correo:</label>
+                    <input type="text" id="dash-login-user" required placeholder="admin@mi-spa.com" class="w-full px-3.5 py-2.5 bg-purple-50/30 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed] transition-all text-xs text-purple-950">
+                </div>
+
+                <div class="space-y-1 text-xs">
+                    <label for="dash-login-password" class="block font-semibold text-purple-950">Contraseña:</label>
+                    <input type="password" id="dash-login-password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 bg-purple-50/30 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7c3aed] transition-all text-xs text-purple-950">
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold rounded-xl text-xs active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+                    <i data-lucide="log-in" class="w-4 h-4"></i>
+                    Ingresar al Panel
+                </button>
+            </form>
+            <a href="../" class="block text-center text-xs text-purple-700 hover:text-[#3b0764] hover:underline font-semibold mt-2">
+                ← Volver al Sitio Público
+            </a>
+        </div>
+    </div>
+
     <script src="/js/dashboard.js"></script>
-    <!-- Auto-login con credenciales demo (proviene del banner de la landing page) -->
-    <script>
-        (function () {
-            const demoUser = sessionStorage.getItem('demo_user');
-            const demoPass = sessionStorage.getItem('demo_pass');
-            if (demoUser && demoPass) {
-                sessionStorage.removeItem('demo_user');
-                sessionStorage.removeItem('demo_pass');
-                // Espera a que dashboard.js cargue y ejecute su DOMContentLoaded
-                window.addEventListener('load', () => {
-                    setTimeout(() => {
-                        const inputUser = document.getElementById('login-usuario');
-                        const inputPass = document.getElementById('login-password');
-                        const btnLogin  = document.getElementById('btn-login');
-                        if (inputUser) inputUser.value = demoUser;
-                        if (inputPass) inputPass.value = demoPass;
-                        if (btnLogin)  btnLogin.click();
-                    }, 600);
-                });
-            }
-        })();
-    </script>
 </body>
 </html>
 
