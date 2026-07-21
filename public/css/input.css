@@ -251,3 +251,146 @@ h1, h2, h3, h4, .font-serif {
     width: max-content;
 }
 
+/* ============================
+   Calendario — Responsivo Móvil
+   ============================ */
+
+/* Wrapper del calendario con scroll horizontal en móvil */
+.calendar-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 1rem;
+    border: 1px solid #e8e0ee;
+    max-height: 480px;
+    overflow-y: auto;
+    background: white;
+    box-shadow: inset 0 2px 8px rgba(106,27,154,0.04);
+    scroll-snap-type: x mandatory;
+    position: relative;
+}
+
+.calendar-grid {
+    min-width: 600px;
+}
+
+/* Indicador de scroll en móvil */
+.scroll-hint {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    color: var(--color-purple-mid);
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    background: var(--color-purple-soft);
+    border-radius: 1rem;
+    margin-bottom: 0.5rem;
+    animation: bounceSubtle 2s ease-in-out infinite;
+}
+
+@media (max-width: 768px) {
+    .scroll-hint {
+        display: flex;
+    }
+
+    /* Header móvil: stack items vertically */
+    #main-nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.4rem;
+    }
+
+    /* Servicios en columna única en móvil */
+    #servicios-grid .grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Galería en móvil: 1 columna */
+    #galeria .grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Calendario — mayor altura de celda táctil */
+    .calendar-grid .cal-btn {
+        min-height: 52px !important;
+        font-size: 0.65rem !important;
+    }
+
+    /* Formulario: stack de botones en móvil */
+    .form-btn-group {
+        flex-direction: column !important;
+    }
+
+    /* Sección de contacto en móvil */
+    #contacto .grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Animación fade-in para secciones */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out both;
+}
+
+/* Botón de reserva en tarjetas — hover con shimmer */
+.btn-reservar-servicio {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-reservar-servicio::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -75%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.5s ease;
+}
+
+.btn-reservar-servicio:hover::after {
+    left: 125%;
+}
+
+/* Calendario: celda disponible pulsante */
+.cal-cell-available {
+    animation: pulseAvailable 2s ease-in-out infinite;
+}
+
+@keyframes pulseAvailable {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.15); }
+    50%       { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1); }
+}
+
+/* Toast de confirmación */
+@keyframes slideInRight {
+    from { transform: translateX(110%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+
+.toast-slide-in {
+    animation: slideInRight 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Paso activo — indicador visual */
+.step-indicator-active {
+    background: linear-gradient(135deg, var(--color-purple-mid), var(--color-purple-deep));
+    color: white;
+    box-shadow: 0 4px 12px rgba(106,27,154,0.25);
+}
+
+.step-indicator-inactive {
+    background: var(--color-purple-soft);
+    color: var(--color-purple-deep);
+}
+
+/* Formulario — input focus glow */
+input:focus, select:focus, textarea:focus {
+    box-shadow: 0 0 0 3px rgba(142, 36, 170, 0.12);
+}
+

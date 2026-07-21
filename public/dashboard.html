@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -133,7 +133,11 @@
                         <i data-lucide="clock-x" class="w-4 h-4"></i>
                         Bloquear Franja
                     </button>
-                    <button type="button" id="admin-share-week-btn" class="flex-1 sm:flex-none px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-sm">
+                    <button type="button" id="btn-horario-especial-rapido" class="flex-1 sm:flex-none px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-sm">
+                        <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                        + Habilitar Horario Especial
+                    </button>
+                    <button type="button" id="admin-share-week-btn" class="flex-1 sm:flex-none px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-900 border border-purple-200 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-sm">
                         <i data-lucide="share-2" class="w-4 h-4"></i>
                         Anunciar Agenda
                     </button>
@@ -820,6 +824,65 @@
                     Cancelar Transacción
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: HABILITAR HORARIO ESPECIAL / EXCEPCIÓN   -->
+    <!-- ============================================== -->
+    <div id="modal-horario-especial" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden animate-fade-in">
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-purple-200 transform transition-all animate-scale-up space-y-5 text-purple-950">
+            
+            <div class="flex items-center gap-3 border-b border-purple-100 pb-3">
+                <div class="w-10 h-10 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
+                    <i data-lucide="calendar-plus" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h4 class="text-lg font-serif text-purple-900">Excepción Horaria Especial</h4>
+                    <p class="text-xs text-purple-700/70">Habilita horas extras o bloquea días completos fuera de la rutina semanal.</p>
+                </div>
+            </div>
+
+            <form id="form-horario-especial" class="space-y-4">
+                <div class="space-y-1">
+                    <label for="he-tipo" class="block text-xs font-semibold">Tipo de Excepción:</label>
+                    <select id="he-tipo" required class="w-full px-3.5 py-2.5 bg-purple-50/20 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-xs">
+                        <option value="open">🟢 Habilitar Horario Especial (Abrir / Horas Extras)</option>
+                        <option value="closed">🚫 Bloquear Día Completo (Cerrar por Festivo / Vacaciones)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="he-fecha" class="block text-xs font-semibold">Fecha:</label>
+                    <input type="date" id="he-fecha" required class="w-full px-3.5 py-2.5 bg-purple-50/20 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-xs font-sans">
+                </div>
+
+                <!-- Campos de horas, solo se configuran para 'open' -->
+                <div id="wrapper-he-horas" class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="he-inicio" class="block text-xs font-semibold">Hora Inicio:</label>
+                        <input type="time" id="he-inicio" value="06:00" class="w-full px-3.5 py-2.5 bg-purple-50/20 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-xs font-sans">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="he-fin" class="block text-xs font-semibold">Hora Fin:</label>
+                        <input type="time" id="he-fin" value="21:00" class="w-full px-3.5 py-2.5 bg-purple-50/20 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-xs font-sans">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="he-motivo" class="block text-xs font-semibold">Motivo / Descripción:</label>
+                    <input type="text" id="he-motivo" placeholder="Ej: Atender cliente especial, Domingo Extra, Festivo" required class="w-full px-3.5 py-2.5 bg-purple-50/20 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-xs">
+                </div>
+
+                <div class="flex gap-2.5 pt-1">
+                    <button type="button" id="btn-he-cerrar" class="w-1/2 py-2.5 border border-purple-200 text-purple-700 hover:bg-purple-50 font-semibold rounded-full active:scale-95 transition-all text-xs cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-full shadow-md active:scale-95 transition-all text-xs cursor-pointer">
+                        Confirmar Excepción
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

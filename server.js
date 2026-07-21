@@ -1503,6 +1503,213 @@ app.post('/api/admin/configurar-horario', async (req, res) => {
 });
 
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MÓDULO: HORARIOS MEJORADOS Y SLOTS DISPONIBLES
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @route   GET /api/tenant/business-hours
+ * @desc    Obtiene la configuración semanal completa como array ordenado.
+ * @access  Admin
+ */
+app.get('/api/tenant/business-hours', async (req, res) => {
+    try {
+        const db  = req.db;
+        const emp = req.empresa;
+        const rows = await db.all(
+            'SELECT dia_semana, activo, inicio, fin FROM configuracion_horario WHERE empresa_id = ? ORDER BY dia_semana',
+            [emp.id]
+        );
+        const diasDefault = [0,1,2,3,4,5,6].map(d => {
+            const found = rows.find(r => r.dia_semana === d);
+            return found
+                ? { dia: d, activo: !!found.activo, inicio: found.inicio, fin: found.fin }
+                : { dia: d, activo: false, inicio: '08:00', fin: '19:00' };
+        });
+        return res.status(200).json({ ok: true, datos: diasDefault });
+    } catch (err) {
+        console.error('❌ [GET /api/tenant/business-hours]', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error al obtener horarios.' });
+    }
+});
+
+/**
+ * @route   PUT /api/tenant/business-hours
+ * @desc    Actualiza múltiples días de horario en una sola llamada.
+ *          Body: { dias: [{ dia, activo, inicio, fin }, ...] }
+ * @access  Admin
+ */
+app.put('/api/tenant/business-hours', async (req, res) => {
+    try {
+        const db  = req.db;
+        const emp = req.empresa;
+        const { dias } = req.body;
+        if (!Array.isArray(dias) || dias.length === 0) {
+            return res.status(400).json({ ok: false, mensaje: 'Se requiere un array "dias".' });
+        }
+        for (const d of dias) {
+            const { dia, activo, inicio, fin } = d;
+            if (dia === undefined || !inicio || !fin) continue;
+            await db.run(`
+                INSERT INTO configuracion_horario (empresa_id, dia_semana, activo, inicio, fin)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(empresa_id, dia_semana) DO UPDATE SET
+                    activo = excluded.activo,
+                    inicio = excluded.inicio,
+                    fin    = excluded.fin
+            `, [emp.id, dia, activo ? 1 : 0, inicio, fin]);
+        }
+        return res.status(200).json({ ok: true, mensaje: `${dias.length} día(s) actualizados correctamente.` });
+    } catch (err) {
+        console.error('❌ [PUT /api/tenant/business-hours]', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error al actualizar horarios.' });
+    }
+});
+
+/**
+ * @route   POST /api/tenant/schedule-exceptions
+ * @desc    Crea una excepción horaria para una fecha específica.
+ *          type='open'   → habilita esa fecha (tabla aperturas)
+ *          type='closed' → bloquea el día completo (tabla bloqueos tipo='dia')
+ *          Body: { date, start_time, end_time, type, reason }
+ * @access  Admin
+ */
+app.post('/api/tenant/schedule-exceptions', async (req, res) => {
+    try {
+        const db  = req.db;
+        const emp = req.empresa;
+        const { date, start_time, end_time, type, reason } = req.body;
+        if (!date || !type) {
+            return res.status(400).json({ ok: false, mensaje: 'Se requieren "date" y "type".' });
+        }
+        if (type === 'open') {
+            const existing = await db.get(
+                'SELECT id FROM aperturas WHERE fecha = ? AND empresa_id = ?', [date, emp.id]
+            );
+            if (existing) {
+                await db.run(
+                    'UPDATE aperturas SET activo=1, inicio=?, fin=?, descripcion=? WHERE id=?',
+                    [start_time || '08:00', end_time || '19:00', reason || 'Horario especial', existing.id]
+                );
+            } else {
+                await db.run(
+                    'INSERT INTO aperturas (empresa_id, fecha, activo, inicio, fin, descripcion) VALUES (?, ?, 1, ?, ?, ?)',
+                    [emp.id, date, start_time || '08:00', end_time || '19:00', reason || 'Horario especial']
+                );
+            }
+            return res.status(201).json({ ok: true, mensaje: `✅ Horario especial habilitado para ${date}.` });
+        } else if (type === 'closed') {
+            await db.run(
+                'INSERT INTO bloqueos (empresa_id, fecha, tipo, descripcion) VALUES (?, ?, ?, ?)',
+                [emp.id, date, 'dia', reason || 'Día festivo / sin atención']
+            );
+            return res.status(201).json({ ok: true, mensaje: `🚫 Día ${date} bloqueado como cerrado.` });
+        } else {
+            return res.status(400).json({ ok: false, mensaje: '"type" debe ser "open" o "closed".' });
+        }
+    } catch (err) {
+        console.error('❌ [POST /api/tenant/schedule-exceptions]', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error al crear excepción horaria.' });
+    }
+});
+
+/**
+ * @route   GET /api/public/available-slots
+ * @desc    Retorna franjas disponibles para una fecha concreta.
+ *          Aplica: horario_semanal → override aperturas → excluye bloqueos y citas.
+ *          Query: ?fecha=YYYY-MM-DD&duracion=N (minutos, default 30)
+ * @access  Público (requiere x-tenant-slug)
+ */
+app.get('/api/public/available-slots', async (req, res) => {
+    try {
+        const db  = req.db;
+        const emp = req.empresa;
+        const { fecha, duracion } = req.query;
+
+        if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+            return res.status(400).json({ ok: false, mensaje: 'Se requiere "fecha" en formato YYYY-MM-DD.' });
+        }
+        const durMin = parseInt(duracion) || 30;
+
+        const [anio, mes, dia] = fecha.split('-').map(Number);
+        const diaSemana = new Date(anio, mes - 1, dia).getDay();
+
+        const configDia = await db.get(
+            'SELECT activo, inicio, fin FROM configuracion_horario WHERE empresa_id = ? AND dia_semana = ?',
+            [emp.id, diaSemana]
+        );
+        const apertura = await db.get(
+            'SELECT inicio, fin FROM aperturas WHERE empresa_id = ? AND fecha = ? AND activo = 1',
+            [emp.id, fecha]
+        );
+        const bloqueoDia = await db.get(
+            "SELECT id FROM bloqueos WHERE empresa_id = ? AND fecha = ? AND tipo = 'dia'",
+            [emp.id, fecha]
+        );
+
+        if (bloqueoDia) {
+            return res.status(200).json({ ok: true, datos: { fecha, slots: [], razon: 'Día bloqueado (cerrado)' } });
+        }
+
+        let horaInicio, horaFin;
+        if (apertura) {
+            horaInicio = apertura.inicio;
+            horaFin    = apertura.fin;
+        } else if (configDia && configDia.activo) {
+            horaInicio = configDia.inicio;
+            horaFin    = configDia.fin;
+        } else {
+            return res.status(200).json({ ok: true, datos: { fecha, slots: [], razon: 'Día no laborable' } });
+        }
+
+        const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+        const toHH  = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+
+        const bloqueosFranja = await db.all(
+            "SELECT hora, duracion FROM bloqueos WHERE empresa_id = ? AND fecha = ? AND tipo = 'franja'",
+            [emp.id, fecha]
+        );
+        const citasHoy = await db.all(
+            "SELECT hora, duracion FROM citas WHERE empresa_id = ? AND fecha = ? AND estado != 'Cancelada'",
+            [emp.id, fecha]
+        );
+
+        const ocupados = [
+            ...bloqueosFranja.map(b => ({ ini: toMin(b.hora), fin: toMin(b.hora) + (b.duracion||30) })),
+            ...citasHoy.map(c => ({ ini: toMin(c.hora), fin: toMin(c.hora) + (c.duracion||30) }))
+        ];
+
+        let curMin = toMin(horaInicio);
+        const finMin = toMin(horaFin);
+        const slots = [];
+        while (curMin + durMin <= finMin) {
+            const sf = curMin + durMin;
+            if (!ocupados.some(o => curMin < o.fin && sf > o.ini)) {
+                slots.push(toHH(curMin));
+            }
+            curMin += durMin;
+        }
+
+        return res.status(200).json({
+            ok: true,
+            datos: {
+                fecha,
+                diaSemana,
+                horaApertura: horaInicio,
+                horaCierre: horaFin,
+                duracionSlot: durMin,
+                slots,
+                totalDisponibles: slots.length,
+                esAperturaEspecial: !!apertura
+            }
+        });
+    } catch (err) {
+        console.error('❌ [GET /api/public/available-slots]', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error al calcular slots disponibles.' });
+    }
+});
+
+
 /**
  * @route   GET /api/citas
  * @desc    Endpoint administrativo que lista todas las citas agendadas.

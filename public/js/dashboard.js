@@ -313,11 +313,52 @@ document.addEventListener('DOMContentLoaded', () => {
             calendarGrid.appendChild(cellDayHeader);
         });
 
-        // Franjas de tiempo de 8:00 AM a 7:00 PM
-        const startMin = 8 * 60;
-        const endMin = 19 * 60;
+        // Rango de horas dinámico acotado a la hora de apertura más temprana y de cierre más tardía
+        let minMinutos = 24 * 60;
+        let maxMinutos = 0;
+        let algunDiaActivo = false;
 
-        for (let m = startMin; m < endMin; m += 30) {
+        if (configuracionHorario) {
+            Object.values(configuracionHorario).forEach(h => {
+                if (h.activo && h.inicio && h.fin) {
+                    algunDiaActivo = true;
+                    const [hIni, mIni] = h.inicio.split(':').map(Number);
+                    const [hFin, mFin] = h.fin.split(':').map(Number);
+                    const iniMin = hIni * 60 + mIni;
+                    const finMin = hFin * 60 + mFin;
+                    if (iniMin < minMinutos) minMinutos = iniMin;
+                    if (finMin > maxMinutos) maxMinutos = finMin;
+                }
+            });
+        }
+
+        if (horariosFechas) {
+            Object.values(horariosFechas).forEach(h => {
+                if (h.activo && h.inicio && h.fin) {
+                    algunDiaActivo = true;
+                    const [hIni, mIni] = h.inicio.split(':').map(Number);
+                    const [hFin, mFin] = h.fin.split(':').map(Number);
+                    const iniMin = hIni * 60 + mIni;
+                    const finMin = hFin * 60 + mFin;
+                    if (iniMin < minMinutos) minMinutos = iniMin;
+                    if (finMin > maxMinutos) maxMinutos = finMin;
+                }
+            });
+        }
+
+        if (!algunDiaActivo) {
+            minMinutos = 8 * 60;
+            maxMinutos = 19 * 60;
+        } else {
+            minMinutos = Math.floor(minMinutos / 60) * 60;
+            maxMinutos = Math.ceil(maxMinutos / 60) * 60;
+
+            // Garantizar al menos rango básico de 8 AM a 7 PM
+            if (minMinutos > 8 * 60) minMinutos = 8 * 60;
+            if (maxMinutos < 19 * 60) maxMinutos = 19 * 60;
+        }
+
+        for (let m = minMinutos; m < maxMinutos; m += 30) {
             const timeStr = minutesToTime(m);
 
             // Etiqueta de la hora
@@ -1863,6 +1904,83 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) {
                 console.error(e);
             }
+        }
+    });
+
+    // =================================================================
+    // GESTIÓN DE EXCEPCIONES HORARIAS (HORARIO ESPECIAL / BLOQUEO)
+    // =================================================================
+    const btnHorarioEspecialRapido = document.getElementById('btn-horario-especial-rapido');
+    const modalHorarioEspecial     = document.getElementById('modal-horario-especial');
+    const formHorarioEspecial      = document.getElementById('form-horario-especial');
+    const btnHeCerrar              = document.getElementById('btn-he-cerrar');
+    const heTipo                   = document.getElementById('he-tipo');
+    const wrapperHeHoras           = document.getElementById('wrapper-he-horas');
+    const heFecha                  = document.getElementById('he-fecha');
+    const heInicio                 = document.getElementById('he-inicio');
+    const heFin                    = document.getElementById('he-fin');
+    const heMotivo                 = document.getElementById('he-motivo');
+
+    // Inicializar la fecha mínima con el día de hoy
+    const hoyStrLocal = new Date().toISOString().split('T')[0];
+    heFecha.min = hoyStrLocal;
+
+    // Cambiar tipo de excepción (mostrar o esconder horas)
+    heTipo.addEventListener('change', () => {
+        if (heTipo.value === 'open') {
+            wrapperHeHoras.classList.remove('hidden');
+        } else {
+            wrapperHeHoras.classList.add('hidden');
+        }
+    });
+
+    // Abrir Modal
+    btnHorarioEspecialRapido.addEventListener('click', () => {
+        heFecha.value = '';
+        heMotivo.value = '';
+        heTipo.value = 'open';
+        wrapperHeHoras.classList.remove('hidden');
+        modalHorarioEspecial.classList.remove('hidden');
+    });
+
+    // Cerrar Modal
+    btnHeCerrar.addEventListener('click', () => {
+        modalHorarioEspecial.classList.add('hidden');
+    });
+
+    // Submit del Formulario
+    formHorarioEspecial.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const data = {
+            date: heFecha.value,
+            type: heTipo.value,
+            reason: heMotivo.value,
+            start_time: heTipo.value === 'open' ? heInicio.value : null,
+            end_time: heTipo.value === 'open' ? heFin.value : null
+        };
+
+        try {
+            const res = await fetch('/api/tenant/schedule-exceptions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+
+            if (res.ok && result.ok) {
+                mostrarToast(result.mensaje, 'success');
+                modalHorarioEspecial.classList.add('hidden');
+                // Recargar el panel completo para recalcular slots y re-dibujar la semana
+                await cargarPanelAdmin();
+            } else {
+                mostrarToast(result.mensaje || 'Error al guardar la excepción.', 'error');
+            }
+        } catch (err) {
+            console.error('Error al guardar excepción horaria:', err);
+            mostrarToast('Error de conexión con el servidor.', 'error');
         }
     });
 

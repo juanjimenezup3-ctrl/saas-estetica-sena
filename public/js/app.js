@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let btnClasses = 'w-full h-full border rounded-lg font-sans text-[0.7rem] font-bold cursor-pointer transition-all p-1.5 flex flex-col items-center justify-center text-center shadow-sm min-h-[38px] active:scale-95 ';
 
                 if (esReservable) {
-                    btnClasses += 'bg-green-50 text-green-700 border-green-200/60 hover:bg-green-600 hover:text-white hover:border-transparent hover:shadow-green-950/10 hover:-translate-y-0.5';
+                    btnClasses += 'bg-green-50 text-green-700 border-green-200/60 hover:bg-green-600 hover:text-white hover:border-transparent hover:shadow-md hover:-translate-y-0.5 cal-cell-available';
                     btn.className = btnClasses;
                     btn.innerHTML = `<span>Disponible</span><span class="text-[0.58rem] opacity-75 font-normal mt-0.5">${formatHora(timeStr)}</span>`;
                     btn.addEventListener('click', () => seleccionarHorario(fechaStr, timeStr));
@@ -558,14 +558,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function seleccionarHorario(fecha, hora) {
         if (!servicioSeleccionado) {
-            alert('Por favor, selecciona primero un servicio en el "Paso 1" para ver la duración y confirmar tu cita.');
+            // Mostrar error inline en vez de alert bloqueante
+            const errEl = document.getElementById('error-servicioId');
+            if (errEl) {
+                errEl.textContent = '⚠️ Por favor, selecciona primero un servicio para ver la duración.';
+                setTimeout(() => { errEl.textContent = ''; }, 3000);
+            }
             selectServicio.focus();
             selectServicio.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
             // Animación de parpadeo y ring rojo para guiar el ojo del cliente
-            selectServicio.classList.add('ring-4', 'ring-red-400', 'transition-all');
+            selectServicio.classList.add('ring-4', 'ring-red-400', 'transition-all', 'border-red-400');
             setTimeout(() => {
-                selectServicio.classList.remove('ring-4', 'ring-red-400');
+                selectServicio.classList.remove('ring-4', 'ring-red-400', 'border-red-400');
             }, 2500);
             return;
         }
@@ -595,12 +600,32 @@ document.addEventListener('DOMContentLoaded', () => {
         step1.classList.add('hidden');
         step2.classList.remove('hidden');
         document.getElementById('agendar').scrollIntoView({ behavior: 'smooth' });
+
+        // Actualizar indicadores de paso
+        const stepInd1 = document.getElementById('step-ind-1');
+        const stepInd2 = document.getElementById('step-ind-2');
+        if (stepInd1 && stepInd2) {
+            stepInd1.classList.remove('step-indicator-active');
+            stepInd1.classList.add('step-indicator-inactive');
+            stepInd2.classList.remove('step-indicator-inactive');
+            stepInd2.classList.add('step-indicator-active');
+        }
     }
 
     btnBackStep1.addEventListener('click', () => {
         step2.classList.add('hidden');
         step1.classList.remove('hidden');
         document.getElementById('agendar').scrollIntoView({ behavior: 'smooth' });
+
+        // Restaurar indicadores de paso
+        const stepInd1 = document.getElementById('step-ind-1');
+        const stepInd2 = document.getElementById('step-ind-2');
+        if (stepInd1 && stepInd2) {
+            stepInd2.classList.remove('step-indicator-active');
+            stepInd2.classList.add('step-indicator-inactive');
+            stepInd1.classList.remove('step-indicator-inactive');
+            stepInd1.classList.add('step-indicator-active');
+        }
     });
 
     // Navegación de semanas
