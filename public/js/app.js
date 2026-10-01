@@ -295,50 +295,247 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok && data.ok) {
                 datosEmpresaGlobal = data.datos;
                 const nombreSpa = datosEmpresaGlobal.nombre || 'EstéticaSaaS';
-                
-                // Actualizar títulos
+                const slogan = datosEmpresaGlobal.slogan || datosEmpresaGlobal.descripcion || 'Tu Belleza en mis manos';
+                const telefono = datosEmpresaGlobal.telefono || '3001234567';
+                const slug = getTenantSlug();
+
+                // Paletas de temas disponibles para tenants
+                const PALETTES = {
+                    purple: {
+                        '--color-purple-deep': '#6a1b9a',
+                        '--color-purple-mid': '#8e24aa',
+                        '--color-purple-light': '#ab47bc',
+                        '--color-purple-soft': '#f3e5f5',
+                        '--color-purple-dark': '#4a148c',
+                        '--color-bg-page': '#f9f6fb',
+                        '--color-border-light': '#e8e0ee',
+                        '--color-text-dark': '#2d2235',
+                        badge: '✨ Spa & Wellness',
+                        icon: 'sparkles'
+                    },
+                    barber: {
+                        '--color-purple-deep': '#18181b', // Carbón oscuro premium
+                        '--color-purple-mid': '#b45309',  // Ámbar dorado vintage
+                        '--color-purple-light': '#d97706', // Ámbar cálido
+                        '--color-purple-soft': '#fef3c7', // Crema dorado suave
+                        '--color-purple-dark': '#09090b', // Negro azabache
+                        '--color-bg-page': '#fcfbfa',     // Fondo crema sutil
+                        '--color-border-light': '#e4e4e7',
+                        '--color-text-dark': '#18181b',
+                        badge: '💈 Barbershop & Estilo Masculino',
+                        icon: 'scissors'
+                    },
+                    emerald: {
+                        '--color-purple-deep': '#1b4332',
+                        '--color-purple-mid': '#2d6a4f',
+                        '--color-purple-light': '#52b788',
+                        '--color-purple-soft': '#d8f3dc',
+                        '--color-purple-dark': '#081c15',
+                        '--color-bg-page': '#f4f9f5',
+                        '--color-border-light': '#d1e7dd',
+                        '--color-text-dark': '#1b4332',
+                        badge: '🌿 Eco Spa & Bienestar Natural',
+                        icon: 'leaf'
+                    },
+                    rose: {
+                        '--color-purple-deep': '#831843',
+                        '--color-purple-mid': '#be185d',
+                        '--color-purple-light': '#f472b6',
+                        '--color-purple-soft': '#fdf2f8',
+                        '--color-purple-dark': '#500724',
+                        '--color-bg-page': '#fff5f8',
+                        '--color-border-light': '#fce7f3',
+                        '--color-text-dark': '#371220',
+                        badge: '🌸 Beauty Studio & Uñas',
+                        icon: 'heart'
+                    },
+                    ocean: {
+                        '--color-purple-deep': '#0f172a',
+                        '--color-purple-mid': '#0284c7',
+                        '--color-purple-light': '#38bdf8',
+                        '--color-purple-soft': '#e0f2fe',
+                        '--color-purple-dark': '#020617',
+                        '--color-bg-page': '#f8fafc',
+                        '--color-border-light': '#e2e8f0',
+                        '--color-text-dark': '#0f172a',
+                        badge: '💎 Clínica Estética & Dermatología',
+                        icon: 'shield'
+                    }
+                };
+
+                // Aplicar paleta CSS
+                const tema = datosEmpresaGlobal.temaColor || (slug.includes('barber') ? 'barber' : 'purple');
+                const paleta = PALETTES[tema] || PALETTES.purple;
+                for (const [prop, val] of Object.entries(paleta)) {
+                    if (prop.startsWith('--')) {
+                        document.documentElement.style.setProperty(prop, val);
+                    }
+                }
+
+                // Actualizar badge de categoría
+                const catBadge = document.getElementById('empresa-categoria-badge');
+                if (catBadge) {
+                    catBadge.textContent = paleta.badge;
+                }
+
+                // Actualizar título de la pestaña
                 document.title = `${nombreSpa} — Reservas en línea`;
-                
+
+                // Header: nombre y slogan
                 const headerNombre = document.getElementById('header-nombre-spa');
                 if (headerNombre) headerNombre.textContent = nombreSpa;
-                
+
+                // Sección Bienvenida: título, icono y descripción
+                const bienvenidaNombre = document.getElementById('bienvenida-nombre-spa');
+                if (bienvenidaNombre) bienvenidaNombre.textContent = nombreSpa;
+
+                const heroTituloSpan = document.getElementById('hero-titulo-span');
+                if (heroTituloSpan) {
+                    heroTituloSpan.textContent = datosEmpresaGlobal.heroTitulo || (tema === 'barber' ? `${nombreSpa} — Tu Estilo, Tu Actitud` : 'Bienvenido al Bienestar');
+                }
+
+                const heroIcono = document.getElementById('hero-icono');
+                if (heroIcono) {
+                    heroIcono.setAttribute('data-lucide', paleta.icon || 'sparkles');
+                }
+
+                const bienvenidaDesc = document.getElementById('bienvenida-desc');
+                if (bienvenidaDesc) {
+                    bienvenidaDesc.textContent = datosEmpresaGlobal.heroSubtitulo || datosEmpresaGlobal.descripcion || (tema === 'barber' ? 'ofrecemos los mejores cortes modernos, perfilado de barba y cuidado masculino al detalle.' : 'diseñamos una experiencia de relajación y belleza personalizada.');
+                }
+
+                // Tags de contacto (Dirección, Teléfono, Instagram)
+                const direccion = datosEmpresaGlobal.direccion || '';
+                const tagDir = document.getElementById('tag-direccion');
+                const txtDir = document.getElementById('texto-direccion');
+                const contactoDir = document.getElementById('contacto-direccion');
+                if (direccion) {
+                    if (tagDir && txtDir) {
+                        txtDir.textContent = direccion;
+                        tagDir.classList.remove('hidden');
+                    }
+                    if (contactoDir) contactoDir.textContent = direccion;
+                }
+
+                const tagTel = document.getElementById('tag-telefono');
+                const txtTel = document.getElementById('texto-telefono');
+                const contactoTel = document.getElementById('contacto-telefono');
+                if (telefono) {
+                    if (tagTel && txtTel) {
+                        txtTel.textContent = telefono;
+                        tagTel.classList.remove('hidden');
+                    }
+                    if (contactoTel) contactoTel.textContent = `+57 ${telefono}`;
+                }
+
+                const instagram = datosEmpresaGlobal.instagram || '';
+                const tagIg = document.getElementById('tag-instagram');
+                const txtIg = document.getElementById('texto-instagram');
+                if (instagram && tagIg && txtIg) {
+                    txtIg.textContent = instagram;
+                    tagIg.classList.remove('hidden');
+                }
+
+                // Adaptar Galería visual si es Barbería
+                if (tema === 'barber' || (datosEmpresaGlobal.plantillaTipo === 'barber')) {
+                    const gImg1 = document.getElementById('galeria-img-1');
+                    const gT1 = document.getElementById('galeria-title-1');
+                    const gS1 = document.getElementById('galeria-sub-1');
+                    if (gImg1) gImg1.src = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80';
+                    if (gT1) gT1.textContent = 'Cortes Clásicos & Fade';
+                    if (gS1) gS1.textContent = 'Degradados precisos y acabados a navaja';
+
+                    const gImg2 = document.getElementById('galeria-img-2');
+                    const gT2 = document.getElementById('galeria-title-2');
+                    const gS2 = document.getElementById('galeria-sub-2');
+                    if (gImg2) gImg2.src = 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=800&q=80';
+                    if (gT2) gT2.textContent = 'Perfilado de Barba Ritual';
+                    if (gS2) gS2.textContent = 'Toalla caliente y aceites botánicos';
+
+                    const gImg3 = document.getElementById('galeria-img-3');
+                    const gT3 = document.getElementById('galeria-title-3');
+                    const gS3 = document.getElementById('galeria-sub-3');
+                    if (gImg3) gImg3.src = 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80';
+                    if (gT3) gT3.textContent = 'Experiencia Lounge VIP';
+                    if (gS3) gS3.textContent = 'Ambiente exclusivo, café y comodidad';
+                }
+
                 const headerSlogan = document.getElementById('header-slogan');
-                if (headerSlogan) headerSlogan.textContent = datosEmpresaGlobal.descripcion || 'Tu Belleza en mis manos';
-                
+                if (headerSlogan) headerSlogan.textContent = slogan;
+
+                // Footer: nombre
                 const footerNombre = document.getElementById('footer-nombre-spa');
                 if (footerNombre) footerNombre.textContent = nombreSpa;
-                
+
                 const footerCopyright = document.getElementById('footer-nombre-spa-copyright');
                 if (footerCopyright) footerCopyright.textContent = nombreSpa;
-                
-                // Mostrar logos correspondientes
+
+                // Sección Admin: descripción dinámica
+                const adminDesc = document.getElementById('admin-section-desc');
+                if (adminDesc) {
+                    adminDesc.textContent = `El panel de administración de citas, horarios y bloqueos de ${nombreSpa} se encuentra en una interfaz privada para garantizar la seguridad del negocio.`;
+                }
+
+                // Correo de contacto (si es Samambaia, usa el real; si no, usa el slug)
+                const contactoEmail = document.getElementById('contacto-email');
+                if (contactoEmail) {
+                    contactoEmail.textContent = slug === 'samambaia'
+                        ? 'contacto@samambaiaspa.com'
+                        : `contacto@${slug}.com`;
+                }
+
+                // WhatsApp flotante: enlace dinámico con nombre del spa
+                const btnWa = document.getElementById('btn-whatsapp-flotante');
+                if (btnWa) {
+                    const telefonoLimpio = telefono.replace(/\D/g, '');
+                    const numWa = telefonoLimpio.startsWith('57') ? telefonoLimpio : `57${telefonoLimpio}`;
+                    const msgWa = encodeURIComponent(`¡Hola ${nombreSpa}! Tengo una consulta sobre los servicios y citas.`);
+                    btnWa.href = `https://wa.me/${numWa}?text=${msgWa}`;
+                }
+
+                // Logos: Samambaia usa logo real, otros usan inicial del negocio
                 const headerLogoImg = document.getElementById('header-logo-img');
                 const headerLogoGeneric = document.getElementById('header-logo-generic');
                 const footerLogoImg = document.getElementById('footer-logo-img');
                 const footerLogoGeneric = document.getElementById('footer-logo-generic');
-                
-                const slug = getTenantSlug();
+
                 if (slug !== 'samambaia') {
+                    // Mostrar logo genérico con inicial
                     if (headerLogoImg) headerLogoImg.classList.add('hidden');
-                    if (headerLogoGeneric) headerLogoGeneric.classList.remove('hidden');
+                    if (headerLogoGeneric) {
+                        headerLogoGeneric.classList.remove('hidden');
+                        headerLogoGeneric.innerHTML = `<span class="text-base font-bold text-white uppercase">${nombreSpa.charAt(0)}</span>`;
+                    }
                     if (footerLogoImg) footerLogoImg.classList.add('hidden');
-                    if (footerLogoGeneric) footerLogoGeneric.classList.remove('hidden');
+                    if (footerLogoGeneric) {
+                        footerLogoGeneric.classList.remove('hidden');
+                        footerLogoGeneric.innerHTML = `<span class="text-xl font-bold text-white uppercase">${nombreSpa.charAt(0)}</span>`;
+                    }
                 } else {
                     if (headerLogoImg) headerLogoImg.classList.remove('hidden');
                     if (headerLogoGeneric) headerLogoGeneric.classList.add('hidden');
                     if (footerLogoImg) footerLogoImg.classList.remove('hidden');
                     if (footerLogoGeneric) footerLogoGeneric.classList.add('hidden');
                 }
+
                 // Actualizar enlace del Dashboard dinámicamente
                 const btnOpenDashboard = document.getElementById('btn-open-dashboard');
                 if (btnOpenDashboard) {
                     btnOpenDashboard.href = `/${slug}/dashboard`;
+                }
+
+                // Actualizar texto del botón autofill para el evaluador SENA (solo en Samambaia)
+                const bannerDemo = document.getElementById('demo-credentials-banner');
+                if (bannerDemo && slug !== 'samambaia') {
+                    // Ocultar banner demo en spas que no son Samambaia
+                    bannerDemo.classList.add('hidden');
                 }
             }
         } catch (err) {
             console.error('Error al cargar información de la empresa:', err);
         }
     }
+
 
     // Inicializar catálogo y empresa
     (async () => {
@@ -571,7 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             selectServicio.focus();
             selectServicio.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
+
             // Animación de parpadeo y ring rojo para guiar el ojo del cliente
             selectServicio.classList.add('ring-4', 'ring-red-400', 'transition-all', 'border-red-400');
             setTimeout(() => {
@@ -783,7 +980,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Generar enlace de notificación por WhatsApp
         const nombreEmpresa = (datosEmpresaGlobal && datosEmpresaGlobal.nombre) ? datosEmpresaGlobal.nombre : 'EstéticaSaaS';
         const telEmpresa = (datosEmpresaGlobal && datosEmpresaGlobal.telefono) ? datosEmpresaGlobal.telefono : '3000000000';
-        
+
         let telClean = telEmpresa.replace(/[^0-9]/g, '');
         if (telClean.length === 10 && telClean.startsWith('3')) {
             telClean = '57' + telClean;
@@ -796,7 +993,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `📅 *Fecha:* ${formatearFechaLarga(cita.fecha)}\n` +
             `⏰ *Hora:* ${formatHora(cita.hora)}\n\n` +
             `Por favor confirmen mi espacio. ¡Muchas gracias! 💜`;
-            
+
         btnConfirmWhatsapp.href = `https://wa.me/${telClean}?text=${encodeURIComponent(mensajeWhatsApp)}`;
 
         bookingFormWrapper.classList.add('hidden');

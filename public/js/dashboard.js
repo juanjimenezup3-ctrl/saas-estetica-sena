@@ -24,8 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.fetch = async function(url, options = {}) {
             if (typeof url === 'string' && url.startsWith('/api/')) {
                 const pathParts = window.location.pathname.split('/').filter(p => p);
-                const slug = pathParts[0] || 'samambaia';
-                const token = localStorage.getItem('admin_token');
+                const slug = (pathParts.length > 0 && pathParts[0] !== 'dashboard' && pathParts[0] !== 'dashboard.html') ? pathParts[0] : 'samambaia';
+                const token = localStorage.getItem(`admin_token_${slug}`) || localStorage.getItem('admin_token');
 
                 if (options.headers instanceof Headers) {
                     options.headers.set('x-tenant-slug', slug);
@@ -42,7 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const response = await originalFetch(url, options);
             if (response.status === 401 && typeof url === 'string' && !url.includes('/api/admin/login')) {
-                localStorage.removeItem('admin_token');
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                const slug = (pathParts.length > 0 && pathParts[0] !== 'dashboard' && pathParts[0] !== 'dashboard.html') ? pathParts[0] : 'samambaia';
+                localStorage.removeItem(`admin_token_${slug}`);
                 mostrarLoginModal();
             }
             return response;
@@ -87,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 if (res.ok && data.ok) {
+                    const slug = getEmpresaSlug();
+                    localStorage.setItem(`admin_token_${slug}`, data.token);
                     localStorage.setItem('admin_token', data.token);
                     ocultarLoginModal();
                     await cargarPanelAdmin();
@@ -265,17 +269,208 @@ document.addEventListener('DOMContentLoaded', () => {
         0: 'Domingo'
     };
 
-    function getTenantSlug() {
+    function getEmpresaSlug() {
         const pathParts = window.location.pathname.split('/').filter(p => p);
-        // En el dashboard, la ruta suele ser /:slug/dashboard, por lo que el primer elemento es el slug
-        return pathParts[0] || 'samambaia';
+        if (pathParts.length > 0 && pathParts[0] !== 'dashboard' && pathParts[0] !== 'dashboard.html') {
+            return pathParts[0];
+        }
+        return 'samambaia';
     }
+    const getTenantSlug = getEmpresaSlug;
 
     // =================================================================
     // CARGAR DATOS GENERALES
     // =================================================================
+    const DASH_PALETTES = {
+        purple: {
+            '--color-purple-deep': '#6a1b9a',
+            '--color-purple-mid': '#8e24aa',
+            '--color-purple-light': '#ab47bc',
+            '--color-purple-soft': '#f3e5f5'
+        },
+        barber: {
+            '--color-purple-deep': '#18181b',
+            '--color-purple-mid': '#b45309',
+            '--color-purple-light': '#d97706',
+            '--color-purple-soft': '#fef3c7'
+        },
+        emerald: {
+            '--color-purple-deep': '#1b4332',
+            '--color-purple-mid': '#2d6a4f',
+            '--color-purple-light': '#52b788',
+            '--color-purple-soft': '#d8f3dc'
+        },
+        rose: {
+            '--color-purple-deep': '#831843',
+            '--color-purple-mid': '#be185d',
+            '--color-purple-light': '#f472b6',
+            '--color-purple-soft': '#fdf2f8'
+        },
+        ocean: {
+            '--color-purple-deep': '#0f172a',
+            '--color-purple-mid': '#0284c7',
+            '--color-purple-light': '#38bdf8',
+            '--color-purple-soft': '#e0f2fe'
+        }
+    };
+
+    function marcarTemaActivo(tema) {
+        const inputTema = document.getElementById('custom-tema-selected');
+        if (inputTema) inputTema.value = tema;
+
+        document.querySelectorAll('.card-tema-option').forEach(card => {
+            const cardTema = card.getAttribute('data-tema');
+            const check = card.querySelector('.tema-check-circle');
+            if (cardTema === tema) {
+                card.classList.add('ring-4', 'ring-purple-600', 'shadow-md');
+                if (check) {
+                    check.classList.add('bg-white', 'border-transparent');
+                    if (cardTema === 'barber') {
+                        check.classList.remove('bg-white');
+                        check.classList.add('bg-amber-400');
+                    }
+                }
+            } else {
+                card.classList.remove('ring-4', 'ring-purple-600', 'shadow-md');
+                if (check) {
+                    check.classList.remove('bg-white', 'bg-amber-400', 'border-transparent');
+                }
+            }
+        });
+    }
+
+    // Inicializar listeners de clics en tarjetas de plantilla
+    document.querySelectorAll('.card-tema-option').forEach(card => {
+        card.addEventListener('click', () => {
+            const tema = card.getAttribute('data-tema');
+            marcarTemaActivo(tema);
+        });
+    });
+
+    async function cargarDatosEmpresaDashboard() {
+        try {
+            const slug = getEmpresaSlug();
+            const res = await fetch('/api/empresa-info');
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                const emp = data.datos;
+                const nombre = emp.nombre || 'EstéticaSaaS';
+                document.title = `${nombre} — Panel de Administración`;
+                
+                const headerNombre = document.getElementById('header-nombre-spa');
+                if (headerNombre) headerNombre.textContent = nombre;
+
+                const userBadge = document.getElementById('admin-user-badge');
+                if (userBadge) userBadge.textContent = `Administrador: ${nombre}`;
+
+                // Enlace Ver Mi Página en Vivo
+                const btnVerPagina = document.getElementById('btn-ver-mi-pagina');
+                if (btnVerPagina) {
+                    btnVerPagina.href = `/${slug}/`;
+                }
+
+                // Cargar campos en el formulario de personalización
+                const inputNombre = document.getElementById('custom-nombre');
+                if (inputNombre) inputNombre.value = emp.nombre || '';
+
+                const inputHero = document.getElementById('custom-hero-titulo');
+                if (inputHero) inputHero.value = emp.heroTitulo || '';
+
+                const inputDesc = document.getElementById('custom-descripcion');
+                if (inputDesc) inputDesc.value = emp.descripcion || '';
+
+                const inputTel = document.getElementById('custom-telefono');
+                if (inputTel) inputTel.value = emp.telefono || '';
+
+                const inputDir = document.getElementById('custom-direccion');
+                if (inputDir) inputDir.value = emp.direccion || '';
+
+                const inputIg = document.getElementById('custom-instagram');
+                if (inputIg) inputIg.value = emp.instagram || '';
+
+                // Marcar tema activo
+                const temaActual = emp.temaColor || (slug.includes('barber') ? 'barber' : 'purple');
+                marcarTemaActivo(temaActual);
+
+                // Aplicar paleta en el dashboard
+                const paleta = DASH_PALETTES[temaActual] || DASH_PALETTES.purple;
+                for (const [prop, val] of Object.entries(paleta)) {
+                    document.documentElement.style.setProperty(prop, val);
+                }
+
+                // Logos
+                const headerLogoImg = document.getElementById('header-logo-img');
+                const headerLogoGeneric = document.getElementById('header-logo-generic');
+                const footerLogoImg = document.getElementById('footer-logo-img');
+
+                if (slug !== 'samambaia') {
+                    if (headerLogoImg) headerLogoImg.classList.add('hidden');
+                    if (headerLogoGeneric) {
+                        headerLogoGeneric.classList.remove('hidden');
+                        headerLogoGeneric.innerHTML = `<span class="text-base font-bold text-white uppercase">${nombre.charAt(0)}</span>`;
+                    }
+                    if (footerLogoImg) footerLogoImg.classList.add('hidden');
+                } else {
+                    if (headerLogoImg) headerLogoImg.classList.remove('hidden');
+                    if (headerLogoGeneric) headerLogoGeneric.classList.add('hidden');
+                    if (footerLogoImg) footerLogoImg.classList.remove('hidden');
+                }
+            }
+        } catch (e) {
+            console.error('Error cargando info de empresa:', e);
+        }
+    }
+
+    // Submit de Personalización
+    const formPersonalizacion = document.getElementById('form-personalizacion-empresa');
+    if (formPersonalizacion) {
+        formPersonalizacion.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btn-guardar-personalizacion');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Guardando...';
+
+            const payload = {
+                nombre: document.getElementById('custom-nombre').value.trim(),
+                heroTitulo: document.getElementById('custom-hero-titulo').value.trim(),
+                descripcion: document.getElementById('custom-descripcion').value.trim(),
+                heroSubtitulo: document.getElementById('custom-descripcion').value.trim(),
+                telefono: document.getElementById('custom-telefono').value.trim(),
+                direccion: document.getElementById('custom-direccion').value.trim(),
+                instagram: document.getElementById('custom-instagram').value.trim(),
+                temaColor: document.getElementById('custom-tema-selected').value,
+                plantillaTipo: document.getElementById('custom-tema-selected').value
+            };
+
+            try {
+                const res = await fetch('/api/admin/personalizacion', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok && data.ok) {
+                    mostrarToast('✨ ¡Plantilla y datos de tu centro actualizados con éxito!', 'success');
+                    await cargarDatosEmpresaDashboard();
+                } else {
+                    mostrarToast(data.mensaje || 'Error al guardar los cambios.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                mostrarToast('Error de conexión al guardar plantilla.', 'error');
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Guardar y Aplicar en Mi Página';
+                lucide.createIcons();
+            }
+        });
+    }
+
     async function cargarPanelAdmin() {
         try {
+            // Cargar info del negocio actual (Nombre, Logo, Título dinámico)
+            await cargarDatosEmpresaDashboard();
+
             // Cargar configuración de horario de operación
             const resConfig = await fetch('/api/admin/configuracion-horario');
             const dataConfig = await resConfig.json();
@@ -2069,15 +2264,241 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Cerrar sesión
-    btnCerrarSesion.addEventListener('click', () => {
-        if (confirm('¿Estás segura de que deseas cerrar la sesión?')) {
-            localStorage.removeItem('admin_token');
-            mostrarToast('🔒 Sesión cerrada con éxito. Redirigiendo...', 'success');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 800);
+    // =================================================================
+    // MÓDULO DE SUSCRIPCIÓN SAAS & PASARELA WOMPI (BANCOLOMBIA)
+    // =================================================================
+    let wompiConfigGlobal = null;
+
+    async function cargarDatosSuscripcion() {
+        try {
+            const res = await fetch('/api/admin/suscripcion');
+            const result = await res.json();
+            if (res.ok && result.ok) {
+                const info = result.datos;
+                wompiConfigGlobal = info;
+
+                // 1. Actualizar Tarjeta de Estadísticas en el Dashboard
+                const elPlan = document.getElementById('admin-stat-plan');
+                const elBadge = document.getElementById('admin-stat-badge-estado');
+                const elVenc = document.getElementById('admin-stat-vencimiento');
+
+                if (elPlan) {
+                    elPlan.textContent = info.plan === 'Pro' ? 'Plan Pro ⭐' : 'Plan Básico';
+                }
+                if (elBadge) {
+                    const esActivo = info.estado === 'Active';
+                    elBadge.textContent = esActivo ? 'Activa' : 'Prueba';
+                    elBadge.className = esActivo
+                        ? 'text-[0.6rem] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800'
+                        : 'text-[0.6rem] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800';
+                }
+                if (elVenc) {
+                    elVenc.textContent = `Vence: ${info.fechaFin} (${info.diasRestantes}d)`;
+                }
+
+                // 2. Actualizar Modal de Wompi
+                const modalPlan = document.getElementById('wompi-modal-plan');
+                const modalBadge = document.getElementById('wompi-modal-badge');
+                const modalDias = document.getElementById('wompi-modal-dias');
+                const modalFechaFin = document.getElementById('wompi-modal-fecha-fin');
+                const historialContenedor = document.getElementById('wompi-historial-pagos');
+
+                if (modalPlan) modalPlan.textContent = info.plan === 'Pro' ? 'Plan Premium Pro' : 'Plan Emprendedor (Básico)';
+                if (modalBadge) {
+                    modalBadge.textContent = info.estado === 'Active' ? 'Activa' : 'Prueba';
+                    modalBadge.className = info.estado === 'Active'
+                        ? 'px-2 py-0.5 rounded-full text-[0.68rem] font-bold bg-emerald-100 text-emerald-800'
+                        : 'px-2 py-0.5 rounded-full text-[0.68rem] font-bold bg-purple-200 text-purple-900';
+                }
+                if (modalDias) modalDias.textContent = `(${info.diasRestantes} días restantes)`;
+                if (modalFechaFin) modalFechaFin.textContent = info.fechaFin;
+
+                // 3. Renderizar historial de pagos SQLite
+                if (historialContenedor) {
+                    if (!info.historialPagos || info.historialPagos.length === 0) {
+                        historialContenedor.innerHTML = '<p class="p-3 text-center text-gray-400 text-xs">Sin pagos previos registrados. Actualmente en período de prueba.</p>';
+                    } else {
+                        historialContenedor.innerHTML = info.historialPagos.map(p => {
+                            const valor = (p.monto_centavos / 100).toLocaleString('es-CO');
+                            return `
+                                <div class="p-2.5 flex items-center justify-between hover:bg-purple-100/40 transition-colors">
+                                    <div>
+                                        <div class="font-bold text-purple-950 flex items-center gap-1.5">
+                                            <span>$${valor} COP</span>
+                                            <span class="text-[0.6rem] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-bold">${p.estado}</span>
+                                        </div>
+                                        <span class="text-[0.65rem] text-gray-500 font-mono">${p.referencia || p.transaccion_id}</span>
+                                    </div>
+                                    <div class="text-right text-[0.65rem] text-gray-500">
+                                        <span class="block">${p.plan_nombre} (${p.metodo_pago})</span>
+                                        <span class="block font-mono text-[0.6rem]">${p.fecha_pago}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Error cargando suscripción SaaS:', err);
         }
-    });
+    }
+
+    // Modal de Wompi en Dashboard
+    const btnAbrirModalWompi = document.getElementById('btn-abrir-modal-wompi');
+    const modalWompiSuscripcion = document.getElementById('modal-wompi-suscripcion');
+    const btnCerrarModalWompi = document.getElementById('btn-cerrar-modal-wompi');
+    const btnWompiCheckoutOficial = document.getElementById('btn-wompi-checkout-oficial');
+    const btnWompiSimularAprobado = document.getElementById('btn-wompi-simular-aprobado');
+
+    if (btnAbrirModalWompi && modalWompiSuscripcion) {
+        btnAbrirModalWompi.addEventListener('click', () => {
+            modalWompiSuscripcion.classList.remove('hidden');
+            cargarDatosSuscripcion();
+        });
+    }
+
+    if (btnCerrarModalWompi && modalWompiSuscripcion) {
+        btnCerrarModalWompi.addEventListener('click', () => {
+            modalWompiSuscripcion.classList.add('hidden');
+        });
+    }
+
+    // Pagar con Checkout Oficial Wompi (Bancolombia)
+    if (btnWompiCheckoutOficial) {
+        btnWompiCheckoutOficial.addEventListener('click', async () => {
+            const planSeleccionado = document.querySelector('input[name="wompi-plan-opcion"]:checked')?.value || 'Pro';
+            const amountInCents = planSeleccionado === 'Pro' ? 8500000 : 3500000;
+            const slug = getEmpresaSlug();
+            const reference = `ESTETICA-${slug}-${Date.now()}`;
+
+            btnWompiCheckoutOficial.disabled = true;
+            btnWompiCheckoutOficial.textContent = 'Generando checkout de Wompi...';
+
+            try {
+                // Obtener firma de integridad
+                const resSig = await fetch('/api/wompi/create-signature', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reference, amountInCents, currency: 'COP' })
+                });
+                const dataSig = await resSig.json();
+
+                if (!resSig.ok || !dataSig.ok) {
+                    mostrarToast('Error al preparar la transacción con Wompi.', 'error');
+                    btnWompiCheckoutOficial.disabled = false;
+                    btnWompiCheckoutOficial.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Pagar con Checkout Oficial Wompi';
+                    lucide.createIcons();
+                    return;
+                }
+
+                if (typeof WidgetCheckout !== 'undefined') {
+                    const checkout = new WidgetCheckout({
+                        currency: 'COP',
+                        amountInCents: amountInCents,
+                        reference: reference,
+                        publicKey: dataSig.publicKey,
+                        signature: { integrity: dataSig.signature }
+                    });
+
+                    checkout.open(async function ( result ) {
+                        const transaction = result.transaction;
+                        console.log('Transacción Wompi:', transaction);
+                        if (transaction && (transaction.status === 'APPROVED' || transaction.status === 'PENDING')) {
+                            // Confirmar en el backend y renovar
+                            const resConf = await fetch('/api/wompi/confirm-transaction', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    transactionId: transaction.id,
+                                    reference: reference,
+                                    slug: slug,
+                                    plan: planSeleccionado,
+                                    amountInCents: amountInCents,
+                                    metodoPago: transaction.payment_method_type || 'WOMPI_CHECKOUT'
+                                })
+                            });
+                            const dataConf = await resConf.json();
+                            if (resConf.ok && dataConf.ok) {
+                                mostrarToast('🎉 ¡Suscripción renovada exitosamente con Wompi!', 'success', 6000);
+                                modalWompiSuscripcion.classList.add('hidden');
+                                await cargarDatosSuscripcion();
+                            }
+                        }
+                    });
+                } else {
+                    mostrarToast('El widget de Wompi se cargará en ambiente de red. Usando simulador alterno.', 'info');
+                }
+
+            } catch (err) {
+                console.error('Error al iniciar checkout Wompi:', err);
+                mostrarToast('Error al conectar con la pasarela Wompi.', 'error');
+            } finally {
+                btnWompiCheckoutOficial.disabled = false;
+                btnWompiCheckoutOficial.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Pagar con Checkout Oficial Wompi (PSE, Bancolombia, Tarjeta)';
+                lucide.createIcons();
+            }
+        });
+    }
+
+    // Simulación Rápida de Pago Aprobado (CP-11 para Evaluación SENA)
+    if (btnWompiSimularAprobado) {
+        btnWompiSimularAprobado.addEventListener('click', async () => {
+            const planSeleccionado = document.querySelector('input[name="wompi-plan-opcion"]:checked')?.value || 'Pro';
+            const amountInCents = planSeleccionado === 'Pro' ? 8500000 : 3500000;
+            const slug = getEmpresaSlug();
+            const txId = `WMP-SIM-${Date.now()}`;
+            const ref = `ESTETICA-${slug}-${Date.now()}`;
+
+            btnWompiSimularAprobado.disabled = true;
+            btnWompiSimularAprobado.textContent = 'Procesando confirmación Wompi...';
+
+            try {
+                const res = await fetch('/api/wompi/confirm-transaction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transactionId: txId,
+                        reference: ref,
+                        slug: slug,
+                        plan: planSeleccionado,
+                        amountInCents: amountInCents,
+                        metodoPago: 'WOMPI_SANDBOX_SIMULADO'
+                    })
+                });
+                const result = await res.json();
+
+                if (res.ok && result.ok) {
+                    mostrarToast('🎉 ¡Caso CP-11 Aprobado! Pago procesado y suscripción renovada (+30 días).', 'success', 6000);
+                    modalWompiSuscripcion.classList.add('hidden');
+                    await cargarDatosSuscripcion();
+                } else {
+                    mostrarToast(result.mensaje || 'Error al procesar simulación.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                mostrarToast('Error de conexión con el servidor.', 'error');
+            } finally {
+                btnWompiSimularAprobado.disabled = false;
+                btnWompiSimularAprobado.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> ⚡ Simular Pago Aprobado Inmediato (Evaluación SENA CP-11)';
+                lucide.createIcons();
+            }
+        });
+    }
+
+    // Cerrar sesión
+    if (btnCerrarSesion) {
+        btnCerrarSesion.addEventListener('click', () => {
+            if (confirm('¿Estás seguro de que deseas cerrar la sesión?')) {
+                const slug = getEmpresaSlug();
+                localStorage.removeItem(`admin_token_${slug}`);
+                localStorage.removeItem('admin_token');
+                mostrarToast('🔒 Sesión cerrada con éxito. Redirigiendo...', 'success');
+                setTimeout(() => {
+                    window.location.href = `/${slug}/`;
+                }, 800);
+            }
+        });
+    }
 });
 

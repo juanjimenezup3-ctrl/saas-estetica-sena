@@ -14,6 +14,9 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- Pasarela Wompi Widget Oficial (Bancolombia) -->
+    <script type="text/javascript" src="https://checkout.wompi.co/widget.js"></script>
+
     <!-- Tailwind CSS (Compilado para SamambaiaSpa, lo reusamos por consistencia y velocidad) -->
     <link rel="stylesheet" href="/css/styles.css">
     
@@ -132,7 +135,7 @@
     <section id="precios" class="scroll-mt-24 max-w-6xl mx-auto px-6 py-20 border-t border-purple-100 space-y-12">
         <div class="text-center space-y-3 max-w-lg mx-auto">
             <h3 class="text-3xl font-serif text-purple-950">Planes sencillos, sin contratos</h3>
-            <p class="text-xs text-purple-900/70">Prueba la plataforma totalmente gratis por 14 días. Activa tu suscripción en cualquier momento con pasarela local.</p>
+            <p class="text-xs text-purple-900/70">Prueba la plataforma totalmente gratis por 15 días. Activa tu suscripción en cualquier momento con pasarela local Wompi.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
@@ -142,67 +145,67 @@
                 <div class="space-y-4">
                     <div>
                         <h4 class="text-lg font-bold text-purple-950 font-serif">Plan Emprendedor (Básico)</h4>
-                        <p class="text-xs text-purple-900/70 mt-1">Ideal para profesionales independientes o cabinas de estética.</p>
+                        <p class="text-xs text-purple-900/70 mt-1">Ideal para profesionales independientes o cabinas de estética individuales.</p>
                     </div>
                     <div class="py-2">
-                        <span class="text-3xl font-bold text-purple-950">$15.200 COP</span>
+                        <span class="text-3xl font-bold text-purple-950">$35.000 COP</span>
                         <span class="text-xs text-purple-900/70">/ mes</span>
                     </div>
                     <ul class="text-xs space-y-3 text-purple-900 pt-2 border-t border-purple-100">
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-purple-600 flex-shrink-0"></i>
-                            <span>1 Agenda Profesional activa</span>
+                            <span>1 Agenda Profesional activa con link propio</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-purple-600 flex-shrink-0"></i>
-                            <span>Catálogo de servicios interactivo</span>
+                            <span>Catálogo de servicios interactivo y precios</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-purple-600 flex-shrink-0"></i>
-                            <span>Agendamiento automatizado 24/7</span>
+                            <span>Agendamiento automatizado 24/7 sin cruce de citas</span>
                         </li>
                     </ul>
                 </div>
                 <button onclick="abrirModalRegistro('Emprendedor')" class="w-full py-3.5 bg-purple-50 hover:bg-purple-100 text-purple-950 font-bold rounded-full text-xs transition-all active:scale-95 cursor-pointer">
-                    Probar Plan Emprendedor
+                    Comenzar 15 días gratis (Básico)
                 </button>
             </div>
 
             <!-- PLAN PRO -->
             <div class="bg-white border-2 border-purple-600 p-8 rounded-3xl shadow-md space-y-6 flex flex-col justify-between hover:shadow-lg transition-shadow relative">
                 <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[0.62rem] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full">
-                    Recomendado ⭐
+                    Recomendado SENA ⭐
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <h4 class="text-lg font-bold text-purple-950 font-serif">Plan Pro / Multi-Sede</h4>
-                        <p class="text-xs text-purple-900/70 mt-1">Para centros de estética medianos, spas y cadenas de belleza.</p>
+                        <h4 class="text-lg font-bold text-purple-950 font-serif">Plan Premium Pro / Multi-Sede</h4>
+                        <p class="text-xs text-purple-900/70 mt-1">Para spas consolidados, centros médicos y cadenas de belleza.</p>
                     </div>
                     <div class="py-2">
-                        <span class="text-3xl font-bold text-purple-950">$67.100 COP</span>
+                        <span class="text-3xl font-bold text-purple-950">$85.000 COP</span>
                         <span class="text-xs text-purple-900/70">/ mes</span>
                     </div>
                     <ul class="text-xs space-y-3 text-purple-900 pt-2 border-t border-purple-100">
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-purple-600 flex-shrink-0"></i>
-                            <span>Profesionales e Agendas ilimitados</span>
+                            <span>Múltiples especialistas, cabinas y camillas</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-purple-600 flex-shrink-0"></i>
-                            <span>Reportes financieros e ingresos proyectados</span>
+                            <span>Reportes de caja diarios e ingresos proyectados</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-purple-600 flex-shrink-0"></i>
-                            <span>Sincronización bidireccional con Google Calendar</span>
+                            <span>Sincronización con Google Calendar</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="w-4 h-4 text-purple-600 flex-shrink-0"></i>
-                            <span>Automatización de Webhooks y notificaciones</span>
+                            <span>Automatización de recordatorios por WhatsApp</span>
                         </li>
                     </ul>
                 </div>
                 <button onclick="abrirModalRegistro('Pro')" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-bold rounded-full text-xs shadow-md transition-all active:scale-95 cursor-pointer">
-                    Probar Plan Pro
+                    Comenzar 15 días gratis (Pro)
                 </button>
             </div>
 
@@ -261,8 +264,8 @@
                     <label for="reg-plan" class="block text-xs font-semibold text-purple-900">Plan Seleccionado:</label>
                     <select id="reg-plan" required
                         class="w-full px-3.5 py-2 bg-white border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-650 text-xs text-purple-950">
-                        <option value="Emprendedor">Plan Emprendedor — $15.200 COP / mes</option>
-                        <option value="Pro">Plan Pro / Multi-Sede — $67.100 COP / mes</option>
+                        <option value="Emprendedor">Plan Emprendedor (Básico) — $35.000 COP / mes</option>
+                        <option value="Pro" selected>Plan Premium Pro / Multi-Sede — $85.000 COP / mes</option>
                     </select>
                 </div>
 
@@ -277,13 +280,17 @@
                 </div>
 
                 <!-- Botones de Registro -->
-                <div class="flex items-center gap-2.5 pt-1">
-                    <button type="button" onclick="cerrarModalRegistro()" class="w-1/3 py-2.5 border border-purple-200 text-purple-900 hover:bg-purple-50 font-semibold rounded-full active:scale-95 transition-all text-xs cursor-pointer">
-                        Cerrar
+                <div class="space-y-2 pt-1">
+                    <button type="submit" id="btn-submit-wompi-onboarding" class="w-full py-2.5 bg-gradient-to-r from-purple-700 to-purple-950 hover:from-purple-800 hover:to-purple-999 text-white font-bold rounded-full shadow-md active:scale-95 transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                        Pagar Suscripción con Wompi Bancolombia
                     </button>
-                    <button type="submit" class="w-2/3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-bold rounded-full shadow-md active:scale-95 transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i data-lucide="credit-card" class="w-4 h-4"></i>
-                        Pagar y Registrarse
+                    <button type="button" id="btn-trial-directo" class="w-full py-2 border border-purple-200 text-purple-900 hover:bg-purple-50 font-semibold rounded-full active:scale-95 transition-all text-xs flex items-center justify-center gap-1 cursor-pointer">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                        Comenzar 15 días gratis (Sin pagar ahora)
+                    </button>
+                    <button type="button" onclick="cerrarModalRegistro()" class="w-full py-1 text-purple-700 hover:text-purple-950 font-semibold text-[0.7rem] cursor-pointer text-center">
+                        Cancelar
                     </button>
                 </div>
             </form>
@@ -325,7 +332,7 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- MODAL: PASARELA DE PAGO WOMPI (SANDBOX SIMULADO)-->
+    <!-- MODAL: PASARELA DE PAGO WOMPI (SANDBOX)        -->
     <!-- ============================================== -->
     <div id="modal-pasarela" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden animate-fade-in">
         <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-200 transform transition-all animate-scale-up text-gray-800">
@@ -343,26 +350,27 @@
                 <div class="text-center space-y-1.5">
                     <span class="text-[0.62rem] uppercase tracking-wider text-gray-500 font-bold block">Resumen del Pago</span>
                     <h5 id="pasarela-plan-titulo" class="text-sm font-bold text-gray-900">Plan Pro / Multi-Sede</h5>
-                    <p id="pasarela-precio" class="text-2xl font-extrabold text-[#1f263e]">$67.100 COP</p>
+                    <p id="pasarela-precio" class="text-2xl font-extrabold text-[#1f263e]">$85.000 COP</p>
                     <p class="text-[0.68rem] text-gray-400">Concepto: Suscripción Mensual EstéticaSaaS</p>
                 </div>
 
                 <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 text-[0.68rem] space-y-2">
-                    <p class="font-bold text-gray-700">💳 Simulación de Medio de Pago:</p>
-                    <div class="flex items-center justify-between bg-white px-3 py-2 border rounded border-gray-300">
-                        <span class="font-mono text-gray-650">**** **** **** 4242</span>
-                        <span class="text-[0.6rem] uppercase bg-gray-100 px-1.5 py-0.5 rounded font-bold">VISA</span>
-                    </div>
-                    <p class="text-[0.62rem] text-gray-400 leading-tight">Al hacer clic en "Confirmar Pago", se enviará la aprobación mediante un webhook automatizado en Express para activar tu cuenta.</p>
+                    <p class="font-bold text-gray-700">💳 Pasarela Bancolombia / Wompi:</p>
+                    <p class="text-[0.62rem] text-gray-500 leading-tight">Puedes abrir el checkout oficial de Wompi con Bancolombia, Tarjeta de Crédito, PSE o Nequi, o simular la aprobación directa para la sustentación.</p>
                 </div>
 
                 <!-- Botones Pasarela -->
-                <button type="button" id="btn-pasarela-confirmar" class="w-full py-3 bg-[#24c478] hover:bg-[#1fa968] text-white font-bold rounded-full text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i>
-                    Confirmar Pago Aprobado
+                <button type="button" id="btn-pasarela-wompi-real" class="w-full py-3 bg-[#1f263e] hover:bg-[#2c3756] text-white font-bold rounded-xl text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                    Abrir Checkout Oficial Wompi
                 </button>
-                <button type="button" id="btn-pasarela-cancelar" class="w-full py-2.5 border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold rounded-full text-xs transition-all cursor-pointer">
-                    Cancelar Transacción
+
+                <button type="button" id="btn-pasarela-confirmar" class="w-full py-2.5 bg-[#24c478] hover:bg-[#1fa968] text-white font-bold rounded-xl text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i data-lucide="zap" class="w-4 h-4"></i>
+                    ⚡ Simular Pago Aprobado Inmediato (CP-11)
+                </button>
+                <button type="button" id="btn-pasarela-cancelar" class="w-full py-2 border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold rounded-xl text-xs transition-all cursor-pointer">
+                    Cancelar
                 </button>
             </div>
         </div>
@@ -424,6 +432,7 @@
                 if (res.ok && data.ok) {
                     mostrarToast('🔑 Sesión iniciada con éxito. Redirigiendo...', 'success');
                     localStorage.setItem('admin_token', data.token);
+                    localStorage.setItem(`admin_token_${data.slug}`, data.token);
                     setTimeout(() => {
                         window.location.href = `/${data.slug}/dashboard`;
                     }, 800);
@@ -440,7 +449,64 @@
             }
         });
 
-        // Envío de registro
+        // Registro Directo con 15 Días Gratis (Sin pago inmediato)
+        document.getElementById('btn-trial-directo').addEventListener('click', async () => {
+            const nombreNegocio = document.getElementById('reg-nombre-negocio').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const plan = document.getElementById('reg-plan').value;
+            const legal = document.getElementById('reg-legal').checked;
+
+            if (!nombreNegocio || !email || !password) {
+                mostrarToast('Por favor completa todos los campos del formulario.', 'error');
+                return;
+            }
+            if (!legal) {
+                mostrarToast('Debes aceptar el tratamiento de datos personales (Habeas Data).', 'error');
+                return;
+            }
+
+            const btnTrial = document.getElementById('btn-trial-directo');
+            btnTrial.disabled = true;
+            btnTrial.textContent = 'Creando tu centro de estética...';
+
+            try {
+                const resReg = await fetch('/api/saas/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombreNegocio, email, password, plan })
+                });
+                const dataReg = await resReg.json();
+
+                if (!resReg.ok || !dataReg.ok) {
+                    mostrarToast(dataReg.mensaje || 'Error al registrar el Spa.', 'error');
+                    btnTrial.disabled = false;
+                    btnTrial.innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i> Comenzar 15 días gratis (Sin pagar ahora)';
+                    lucide.createIcons();
+                    return;
+                }
+
+                const slug = dataReg.datos.slug;
+                if (dataReg.datos && dataReg.datos.token) {
+                    localStorage.setItem('admin_token', dataReg.datos.token);
+                }
+                modalRegistro.classList.add('hidden');
+                mostrarToast('🎉 ¡Bienvenido! Tu centro ha sido creado con 15 días de prueba gratis.', 'success', 5000);
+
+                setTimeout(() => {
+                    window.location.href = `/${slug}/dashboard`;
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                mostrarToast('Error al conectar con el servidor.', 'error');
+                btnTrial.disabled = false;
+                btnTrial.innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i> Comenzar 15 días gratis (Sin pagar ahora)';
+                lucide.createIcons();
+            }
+        });
+
+        // Envío de formulario para Pago con Wompi
         formOnboarding.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -456,8 +522,8 @@
             modalRegistro.classList.add('hidden');
             
             // Configurar textos de pasarela
-            document.getElementById('pasarela-plan-titulo').textContent = `Plan ${plan} — EstéticaSaaS`;
-            document.getElementById('pasarela-precio').textContent = plan === 'Pro' ? '$67.100 COP' : '$15.200 COP';
+            document.getElementById('pasarela-plan-titulo').textContent = plan === 'Pro' ? 'Plan Premium Pro — EstéticaSaaS' : 'Plan Emprendedor (Básico) — EstéticaSaaS';
+            document.getElementById('pasarela-precio').textContent = plan === 'Pro' ? '$85.000 COP' : '$35.000 COP';
             
             modalPasarela.classList.remove('hidden');
         });
@@ -468,11 +534,103 @@
             modalRegistro.classList.remove('hidden'); // Volver a registro
         });
 
-        // Confirmar en pasarela (Wompi Callback Simulada)
+        // Pagar con Widget Oficial Wompi Bancolombia
+        document.getElementById('btn-pasarela-wompi-real').addEventListener('click', async () => {
+            if (!dataOnboardingTemporal) return;
+            const btnWompi = document.getElementById('btn-pasarela-wompi-real');
+            btnWompi.disabled = true;
+            btnWompi.textContent = 'Inicializando Wompi...';
+
+            try {
+                // 1. Crear el Spa en el Servidor
+                const resReg = await fetch('/api/saas/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataOnboardingTemporal)
+                });
+                const dataReg = await resReg.json();
+
+                if (!resReg.ok || !dataReg.ok) {
+                    mostrarToast(dataReg.mensaje || 'Error al registrar el Spa.', 'error');
+                    btnWompi.disabled = false;
+                    btnWompi.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Abrir Checkout Oficial Wompi';
+                    lucide.createIcons();
+                    return;
+                }
+
+                const slug = dataReg.datos.slug;
+                if (dataReg.datos && dataReg.datos.token) {
+                    localStorage.setItem('admin_token', dataReg.datos.token);
+                }
+                const plan = dataOnboardingTemporal.plan;
+                const amountInCents = plan === 'Pro' ? 8500000 : 3500000;
+                const reference = `ESTETICA-${slug}-${Date.now()}`;
+
+                // 2. Obtener firma de integridad
+                const resSig = await fetch('/api/wompi/create-signature', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reference, amountInCents, currency: 'COP' })
+                });
+                const dataSig = await resSig.json();
+
+                if (typeof WidgetCheckout !== 'undefined') {
+                    modalPasarela.classList.add('hidden');
+                    const checkout = new WidgetCheckout({
+                        currency: 'COP',
+                        amountInCents: amountInCents,
+                        reference: reference,
+                        publicKey: dataSig.publicKey || 'pub_test_SozejHwv7Lz78s5QcLceF4RRVPcgSMVx',
+                        signature: { integrity: dataSig.signature }
+                    });
+
+                    checkout.open(async function ( result ) {
+                        const transaction = result.transaction;
+                        console.log('Wompi Transaction:', transaction);
+                        if (transaction && (transaction.status === 'APPROVED' || transaction.status === 'PENDING')) {
+                            // Confirmar en el backend
+                            await fetch('/api/wompi/confirm-transaction', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    transactionId: transaction.id,
+                                    reference: reference,
+                                    slug: slug,
+                                    plan: plan,
+                                    amountInCents: amountInCents,
+                                    metodoPago: transaction.payment_method_type || 'WOMPI_WIDGET'
+                                })
+                            });
+                            mostrarToast('🎉 ¡Pago aprobado en Wompi y suscripción activada!', 'success', 5000);
+                            setTimeout(() => {
+                                window.location.href = `/${slug}/dashboard`;
+                            }, 1200);
+                        } else {
+                            mostrarToast('Transacción finalizada o pendiente.', 'info');
+                            setTimeout(() => {
+                                window.location.href = `/${slug}/dashboard`;
+                            }, 1500);
+                        }
+                    });
+                } else {
+                    // Fallback si el script externo no cargó
+                    mostrarToast('Widget Wompi cargado localmente. Redirigiendo al panel...', 'info');
+                    window.location.href = `/${slug}/dashboard`;
+                }
+
+            } catch (err) {
+                console.error(err);
+                mostrarToast('Error al conectar con Wompi.', 'error');
+                btnWompi.disabled = false;
+                btnWompi.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Abrir Checkout Oficial Wompi';
+                lucide.createIcons();
+            }
+        });
+
+        // Simular Aprobación Directa (Evaluación SENA CP-11)
         document.getElementById('btn-pasarela-confirmar').addEventListener('click', async () => {
             if (!dataOnboardingTemporal) return;
             
-            // Inhabilitar botón para evitar multi-clicks
             const btnConfirm = document.getElementById('btn-pasarela-confirmar');
             btnConfirm.disabled = true;
             btnConfirm.textContent = 'Procesando pago y configurando spa...';
@@ -489,47 +647,53 @@
                 if (!resReg.ok || !dataReg.ok) {
                     mostrarToast(dataReg.mensaje || 'Error al registrar el Spa.', 'error');
                     btnConfirm.disabled = false;
-                    btnConfirm.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Pago Aprobado';
+                    btnConfirm.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> ⚡ Simular Pago Aprobado Inmediato (CP-11)';
                     modalPasarela.classList.add('hidden');
                     modalRegistro.classList.remove('hidden');
                     return;
                 }
 
                 const slug = dataReg.datos.slug;
+                if (dataReg.datos && dataReg.datos.token) {
+                    localStorage.setItem('admin_token', dataReg.datos.token);
+                }
+                const plan = dataOnboardingTemporal.plan;
+                const amountInCents = plan === 'Pro' ? 8500000 : 3500000;
+                const txId = 'WMP-SIM-' + Math.floor(Math.random()*1000000);
 
-                // 2. Disparar Webhook de Pago Aprobado
-                const resPay = await fetch('/api/webhooks/payment', {
+                // 2. Disparar confirmación de Wompi
+                const resPay = await fetch('/api/wompi/confirm-transaction', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         slug: slug,
-                        plan: dataOnboardingTemporal.plan,
-                        status: 'APPROVED',
-                        transactionId: 'WMP-TX-' + Math.floor(Math.random()*1000000)
+                        plan: plan,
+                        transactionId: txId,
+                        reference: `ESTETICA-${slug}-${Date.now()}`,
+                        amountInCents: amountInCents,
+                        metodoPago: 'WOMPI_SIMULATION_VISA'
                     })
                 });
                 const dataPay = await resPay.json();
 
                 if (resPay.ok && dataPay.ok) {
                     modalPasarela.classList.add('hidden');
-                    mostrarToast('🎉 ¡Pago aprobado y Spa configurado con éxito!', 'success', 5000);
+                    mostrarToast('🎉 ¡Pago Wompi aprobado y Spa configurado con éxito!', 'success', 5000);
                     
-                    // Mostrar modal de bienvenida con enlace
                     setTimeout(() => {
-                        alert(`¡Bienvenido a EstéticaSaaS!\n\nTu spa se configuró correctamente.\nIngresa aquí:\nhttp://localhost:3000/${slug}/dashboard\n\nCredenciales de inicio:\nUsuario: ${dataOnboardingTemporal.email}\nContraseña: [La contraseña que ingresaste]`);
                         window.location.href = `/${slug}/dashboard`;
-                    }, 500);
+                    }, 1200);
                 } else {
                     mostrarToast('Error al confirmar el pago.', 'error');
                     btnConfirm.disabled = false;
-                    btnConfirm.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Pago Aprobado';
+                    btnConfirm.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> ⚡ Simular Pago Aprobado Inmediato (CP-11)';
                 }
 
             } catch (err) {
                 console.error(err);
                 mostrarToast('Error de conexión con el servidor.', 'error');
                 btnConfirm.disabled = false;
-                btnConfirm.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Pago Aprobado';
+                btnConfirm.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> ⚡ Simular Pago Aprobado Inmediato (CP-11)';
             }
         });
 

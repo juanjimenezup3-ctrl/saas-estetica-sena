@@ -49,6 +49,24 @@ async function initDB(db) {
     try {
         await db.exec('ALTER TABLE empresas ADD COLUMN suscripcion_fin TEXT;');
     } catch (e) {}
+    try {
+        await db.exec('ALTER TABLE empresas ADD COLUMN tema_color TEXT DEFAULT "purple";');
+    } catch (e) {}
+    try {
+        await db.exec('ALTER TABLE empresas ADD COLUMN hero_titulo TEXT;');
+    } catch (e) {}
+    try {
+        await db.exec('ALTER TABLE empresas ADD COLUMN hero_subtitulo TEXT;');
+    } catch (e) {}
+    try {
+        await db.exec('ALTER TABLE empresas ADD COLUMN direccion TEXT;');
+    } catch (e) {}
+    try {
+        await db.exec('ALTER TABLE empresas ADD COLUMN instagram TEXT;');
+    } catch (e) {}
+    try {
+        await db.exec('ALTER TABLE empresas ADD COLUMN plantilla_tipo TEXT DEFAULT "wellness";');
+    } catch (e) {}
 
     // 2. Tabla de Configuración (Automatización, GCal)
     await db.exec(`
@@ -171,6 +189,23 @@ async function initDB(db) {
             password TEXT NOT NULL,
             FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE,
             UNIQUE(empresa_id, usuario)
+        );
+    `);
+
+    // 10. Tabla de Pagos y Transacciones Wompi (Suscripciones SaaS)
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS pagos_wompi (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            empresa_id INTEGER NOT NULL,
+            referencia TEXT UNIQUE,
+            transaccion_id TEXT,
+            monto_centavos INTEGER,
+            moneda TEXT DEFAULT 'COP',
+            estado TEXT,
+            metodo_pago TEXT,
+            plan_nombre TEXT,
+            fecha_pago DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE
         );
     `);
 

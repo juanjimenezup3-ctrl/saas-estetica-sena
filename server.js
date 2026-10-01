@@ -335,6 +335,11 @@ app.use(express.json());
 // Middleware para parsear datos enviados mediante formularios URL-encoded
 app.use(express.urlencoded({ extended: true }));
 
+// Redirigir accesos genéricos de dashboard al login centralizado SaaS
+app.get(['/dashboard', '/dashboard.html', '/admin'], (req, res) => {
+    res.redirect('/');
+});
+
 // Servir archivos estáticos del Frontend desde la carpeta 'public'
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
@@ -478,16 +483,26 @@ app.post('/api/saas/register', async (req, res) => {
         // Iniciar transacción e insertar registros de onboarding
         await db.run('BEGIN TRANSACTION;');
 
-        // Calcular fecha fin de suscripción de prueba (14 días gratis)
+        // Calcular fecha fin de suscripción de prueba (15 días gratis)
         const finSuscripcion = new Date();
-        finSuscripcion.setDate(finSuscripcion.getDate() + 14);
+        finSuscripcion.setDate(finSuscripcion.getDate() + 15);
         const finSuscripcionStr = finSuscripcion.toISOString().split('T')[0];
+
+        // Determinar plantilla y tema inicial según el giro de negocio
+        const nombreLower = nombreNegocio.toLowerCase();
+        const esBarberia = nombreLower.includes('barber') || nombreLower.includes('corte');
+        const defaultTema = esBarberia ? 'barber' : 'purple';
+        const defaultPlantilla = esBarberia ? 'barber' : 'wellness';
+        const defaultHero = esBarberia ? `${nombreNegocio.trim()} — Tu Estilo, Tu Actitud` : `Bienvenido a ${nombreNegocio.trim()}`;
+        const defaultSub = esBarberia 
+            ? 'Barbería profesional, perfilado de barba al detalle y cortes modernos con la mejor técnica.' 
+            : 'Experiencias de relajación, estética facial y corporal diseñadas para consentirte.';
 
         // 1. Crear Empresa
         const resEmpresa = await db.run(`
-            INSERT INTO empresas (slug, nombre, descripcion, telefono, plan_nombre, suscripcion_estado, suscripcion_fin)
-            VALUES (?, ?, ?, ?, ?, 'Trial', ?)
-        `, [slug, nombreNegocio.trim(), `Sede principal de ${nombreNegocio}`, '3000000000', plan, finSuscripcionStr]);
+            INSERT INTO empresas (slug, nombre, descripcion, telefono, plan_nombre, suscripcion_estado, suscripcion_fin, tema_color, plantilla_tipo, hero_titulo, hero_subtitulo)
+            VALUES (?, ?, ?, ?, ?, 'Trial', ?, ?, ?, ?, ?)
+        `, [slug, nombreNegocio.trim(), `Sede principal de ${nombreNegocio}`, '3000000000', plan, finSuscripcionStr, defaultTema, defaultPlantilla, defaultHero, defaultSub]);
         const empresaId = resEmpresa.lastID;
 
         // 2. Crear Configuración
@@ -512,11 +527,20 @@ app.post('/api/saas/register', async (req, res) => {
             `, [empresaId, h.dia, h.activo, h.inicio, h.fin]);
         }
 
-        // 4. Agregar Servicios Semilla
-        const serviciosSemilla = [
+        // 4. Agregar Servicios Semilla adaptados al giro de negocio
+        let serviciosSemilla = [
             { n: 'Masaje Relajante Clásico', c: 'Relajación', d: 60, p: 50000, desc: 'Masaje corporal relajante de espalda y cuello.' },
             { n: 'Limpieza Facial Profunda', c: 'Tratamientos', d: 45, p: 45000, desc: 'Exfoliación, hidratación y cuidado de poros.' }
         ];
+
+        if (esBarberia) {
+            serviciosSemilla = [
+                { n: 'Corte de Cabello & Styling', c: 'Cortes', d: 45, p: 35000, desc: 'Corte personalizado con tijera y máquina, lavado y peinado con producto premium.' },
+                { n: 'Perfilado de Barba & Toalla Caliente', c: 'Barba', d: 35, p: 28000, desc: 'Delineado a navaja, hidratación con aceites esenciales y vapor de toalla caliente.' },
+                { n: 'Combo Completo: Corte + Barba + Mascarilla', c: 'Combos', d: 75, p: 60000, desc: 'Experiencia completa de corte, barba y mascarilla facial desintoxicante.' }
+            ];
+        }
+
         for (const s of serviciosSemilla) {
             await db.run(`
                 INSERT INTO servicios (empresa_id, nombre, categoria, duracion, precio, descripcion)
@@ -534,10 +558,12 @@ app.post('/api/saas/register', async (req, res) => {
 
         console.log(`🚀 [SaaS] Nuevo centro registrado: ${nombreNegocio} (slug: ${slug}) en plan ${plan}`);
 
+        const token = crypto.createHash('sha256').update(`${email.trim()}-${slug}-secret`).digest('hex');
+
         return res.status(201).json({
             ok: true,
-            mensaje: '¡Tu centro de estética ha sido registrado con éxito! Disfruta de 14 días de prueba gratis.',
-            datos: { slug, email }
+            mensaje: '¡Tu centro de estética ha sido registrado con éxito! Disfruta de 15 días de prueba gratis.',
+            datos: { slug, email, token }
         });
 
     } catch (err) {
@@ -551,52 +577,231 @@ app.post('/api/saas/register', async (req, res) => {
     }
 });
 
-app.post('/api/webhooks/payment', async (req, res) => {
-    const { slug, plan, status, transactionId } = req.body;
+// =====================================================================
+// PASARELA DE PAGOS WOMPI (BANCOLOMBIA) — ENDPOINTS & WEBHOOKS
+// =====================================================================
 
-    if (!slug || !plan || !status) {
-        return res.status(400).json({ ok: false, mensaje: 'Faltan campos requeridos en el webhook.' });
+/**
+ * @route   GET /api/wompi/public-key
+ * @desc    Retorna la llave pública de Wompi para inicializar el widget checkout en frontend.
+ */
+app.get('/api/wompi/public-key', (req, res) => {
+    return res.json({
+        ok: true,
+        publicKey: process.env.WOMPI_PUBLIC_KEY || 'pub_test_SozejHwv7Lz78s5QcLceF4RRVPcgSMVx'
+    });
+});
+
+/**
+ * @route   POST /api/wompi/create-signature
+ * @desc    Genera la firma de integridad SHA-256 requerida por Wompi para proteger el monto de la transacción.
+ */
+app.post('/api/wompi/create-signature', (req, res) => {
+    try {
+        const { reference, amountInCents, currency = 'COP' } = req.body;
+        if (!reference || !amountInCents) {
+            return res.status(400).json({ ok: false, mensaje: 'Faltan parámetros: reference y amountInCents.' });
+        }
+
+        const integritySecret = process.env.WOMPI_INTEGRITY_SECRET || 'test_integrity_hlE5DRRBJMdJ2tVZwAr6tposZbBu1nsV';
+        const rawString = `${reference}${amountInCents}${currency}${integritySecret}`;
+        const signature = crypto.createHash('sha256').update(rawString).digest('hex');
+
+        return res.json({
+            ok: true,
+            reference,
+            amountInCents,
+            currency,
+            signature,
+            publicKey: process.env.WOMPI_PUBLIC_KEY || 'pub_test_SozejHwv7Lz78s5QcLceF4RRVPcgSMVx'
+        });
+    } catch (err) {
+        console.error('❌ Error generando firma Wompi:', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error al generar firma de integridad.' });
+    }
+});
+
+/**
+ * @route   POST /api/wompi/confirm-transaction
+ * @desc    Procesa la confirmación directa tras el pago aprobado en el widget de Wompi.
+ */
+app.post('/api/wompi/confirm-transaction', async (req, res) => {
+    const { transactionId, reference, slug, plan = 'Pro', amountInCents = 8500000, metodoPago = 'WOMPI_CHECKOUT' } = req.body;
+
+    if (!slug) {
+        return res.status(400).json({ ok: false, mensaje: 'El slug del centro/spa es requerido.' });
     }
 
     try {
         const { connectDB } = require('./database');
         const db = await connectDB();
 
-        const empresa = await db.get('SELECT id FROM empresas WHERE slug = ?', [slug]);
+        const empresa = await db.get('SELECT id, nombre, plan_nombre, suscripcion_fin FROM empresas WHERE slug = ?', [slug]);
         if (!empresa) {
-            return res.status(404).json({ ok: false, mensaje: 'Empresa no encontrada.' });
+            return res.status(404).json({ ok: false, mensaje: `Empresa con slug "${slug}" no encontrada.` });
+        }
+
+        // Calcular nueva fecha de fin: si la fecha actual aún no vence, sumar 30 días a la fecha existente; si ya venció, sumar 30 días a hoy
+        let fechaBase = new Date();
+        if (empresa.suscripcion_fin) {
+            const fechaFinExistente = new Date(empresa.suscripcion_fin);
+            if (fechaFinExistente > fechaBase) {
+                fechaBase = fechaFinExistente;
+            }
+        }
+        fechaBase.setDate(fechaBase.getDate() + 30);
+        const nuevaFechaFinStr = fechaBase.toISOString().split('T')[0];
+
+        // 1. Actualizar empresa en SQLite
+        await db.run(`
+            UPDATE empresas
+            SET plan_nombre = ?,
+                suscripcion_estado = 'Active',
+                suscripcion_fin = ?,
+                suscripcion_activa = 1
+            WHERE id = ?
+        `, [plan, nuevaFechaFinStr, empresa.id]);
+
+        // 2. Registrar auditoría en la tabla pagos_wompi
+        const txId = transactionId || `WMP-SIM-${Date.now()}`;
+        const refId = reference || `ESTETICA-${slug}-${Date.now()}`;
+
+        await db.run(`
+            INSERT INTO pagos_wompi (empresa_id, referencia, transaccion_id, monto_centavos, moneda, estado, metodo_pago, plan_nombre)
+            VALUES (?, ?, ?, ?, 'COP', 'APPROVED', ?, ?)
+        `, [empresa.id, refId, txId, amountInCents, metodoPago, plan]);
+
+        console.log(`💳 [Wompi Aprobado] Spa: ${empresa.nombre} (${slug}) | Plan: ${plan} | TX: ${txId} | Nuevo Vencimiento: ${nuevaFechaFinStr}`);
+
+        return res.status(200).json({
+            ok: true,
+            mensaje: '¡Suscripción renovada y activada con éxito en Wompi!',
+            datos: {
+                slug,
+                nombre: empresa.nombre,
+                plan,
+                estado: 'Active',
+                fechaFin: nuevaFechaFinStr,
+                transaccionId: txId
+            }
+        });
+    } catch (err) {
+        console.error('❌ Error al confirmar pago Wompi:', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error al procesar la confirmación del pago.' });
+    }
+});
+
+/**
+ * @route   POST /api/webhooks/payment
+ * @route   POST /api/wompi/webhook
+ * @desc    Webhook oficial para notificaciones asíncronas de Wompi (Bancolombia)
+ */
+async function procesarWebhookWompi(req, res) {
+    try {
+        const payload = req.body;
+        console.log('📬 [Wompi Webhook Recibido]:', JSON.stringify(payload).substring(0, 300));
+
+        // Formato 1: Evento oficial de Wompi (event: transaction.updated)
+        let tx = null;
+        if (payload.data && payload.data.transaction) {
+            tx = payload.data.transaction;
+        }
+
+        // Formato 2: Payload simplificado interno
+        const status = tx ? tx.status : (payload.status || 'APPROVED');
+        const reference = tx ? tx.reference : (payload.reference || '');
+        const transactionId = tx ? tx.id : (payload.transactionId || `WMP-EVT-${Date.now()}`);
+        const amountInCents = tx ? tx.amount_in_cents : (payload.amountInCents || 8500000);
+        const paymentMethod = tx ? (tx.payment_method_type || 'CARD') : 'WOMPI_WEBHOOK';
+
+        // Extraer slug: puede venir directamente en payload.slug o embebido en la referencia "ESTETICA-slug-timestamp"
+        let slug = payload.slug;
+        if (!slug && reference) {
+            const parts = reference.split('-');
+            if (parts.length >= 2 && parts[0] === 'ESTETICA') {
+                slug = parts[1];
+            }
+        }
+
+        if (!slug) {
+            console.warn('⚠️ Webhook Wompi recibido sin slug identificable.');
+            return res.status(200).json({ ok: true, mensaje: 'Webhook recibido pero no se identificó el inquilino.' });
         }
 
         if (status === 'APPROVED') {
-            // Extender 30 días la suscripción
-            const finSuscripcion = new Date();
-            finSuscripcion.setDate(finSuscripcion.getDate() + 30);
-            const finSuscripcionStr = finSuscripcion.toISOString().split('T')[0];
+            const { connectDB } = require('./database');
+            const db = await connectDB();
 
-            await db.run(`
-                UPDATE empresas
-                SET plan_nombre = ?, suscripcion_estado = 'Active', suscripcion_fin = ?, suscripcion_activa = 1
-                WHERE id = ?
-            `, [plan, finSuscripcionStr, empresa.id]);
+            const empresa = await db.get('SELECT id, nombre, plan_nombre, suscripcion_fin FROM empresas WHERE slug = ?', [slug]);
+            if (empresa) {
+                let fechaBase = new Date();
+                if (empresa.suscripcion_fin) {
+                    const fFin = new Date(empresa.suscripcion_fin);
+                    if (fFin > fechaBase) fechaBase = fFin;
+                }
+                fechaBase.setDate(fechaBase.getDate() + 30);
+                const finStr = fechaBase.toISOString().split('T')[0];
+                const plan = payload.plan || empresa.plan_nombre || 'Pro';
 
-            console.log(`💳 [SaaS Webhook] Pago aprobado para ${slug}. Plan: ${plan}. Vencimiento: ${finSuscripcionStr}`);
-            return res.status(200).json({ ok: true, mensaje: 'Suscripción activada con éxito.' });
-        } else {
-            console.warn(`💳 [SaaS Webhook] Transacción fallida o pendiente para ${slug}: ${status}`);
-            return res.status(200).json({ ok: true, mensaje: 'Webhook procesado sin cambios.' });
+                await db.run(`
+                    UPDATE empresas
+                    SET plan_nombre = ?, suscripcion_estado = 'Active', suscripcion_fin = ?, suscripcion_activa = 1
+                    WHERE id = ?
+                `, [plan, finStr, empresa.id]);
+
+                await db.run(`
+                    INSERT INTO pagos_wompi (empresa_id, referencia, transaccion_id, monto_centavos, moneda, estado, metodo_pago, plan_nombre)
+                    VALUES (?, ?, ?, ?, 'COP', 'APPROVED', ?, ?)
+                `, [empresa.id, reference || `REF-${Date.now()}`, transactionId, amountInCents, paymentMethod, plan]);
+
+                console.log(`✅ [Wompi Webhook Aprobado] ${slug} actualizado a ${finStr}`);
+            }
         }
 
+        return res.status(200).json({ ok: true, mensaje: 'Evento procesado correctamente.' });
     } catch (err) {
-        console.error('❌ Error procesando webhook de pago:', err.message);
-        return res.status(500).json({ ok: false, mensaje: 'Error interno en el servidor.' });
+        console.error('❌ Error en procesador de webhook Wompi:', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error interno en webhook.' });
     }
-});
+}
+
+app.post('/api/webhooks/payment', procesarWebhookWompi);
+app.post('/api/wompi/webhook', procesarWebhookWompi);
 
 app.use('/api/', tenantResolver);
 
 /**
+ * @route   GET /api/empresa-info
+ * @desc    Retorna información pública/general del tenant (nombre, slug, teléfono, descripción).
+ */
+app.get('/api/empresa-info', (req, res) => {
+    if (!req.empresa) {
+        return res.status(404).json({ ok: false, mensaje: 'Empresa no encontrada.' });
+    }
+    return res.json({
+        ok: true,
+        datos: {
+            id: req.empresa.id,
+            nombre: req.empresa.nombre,
+            slug: req.empresa.slug,
+            descripcion: req.empresa.descripcion,
+            slogan: req.empresa.descripcion || 'Tu Estilo y Bienestar',
+            telefono: req.empresa.telefono || '',
+            direccion: req.empresa.direccion || '',
+            instagram: req.empresa.instagram || '',
+            temaColor: req.empresa.tema_color || 'purple',
+            plantillaTipo: req.empresa.plantilla_tipo || 'wellness',
+            heroTitulo: req.empresa.hero_titulo || '',
+            heroSubtitulo: req.empresa.hero_subtitulo || '',
+            logoUrl: req.empresa.logo || null,
+            plan: req.empresa.plan_nombre
+        }
+    });
+});
+
+/**
  * @route   GET /api/admin/suscripcion
- * @desc    Obtiene el estado de suscripción de la empresa.
+ * @desc    Obtiene el estado de suscripción detallado, días restantes y compras en Wompi.
  * @access  Admin
  */
 app.get('/api/admin/suscripcion', async (req, res) => {
@@ -610,13 +815,35 @@ app.get('/api/admin/suscripcion', async (req, res) => {
             WHERE id = ?
         `, [empresa.id]);
 
+        // Calcular días restantes
+        let diasRestantes = 0;
+        if (info.suscripcion_fin) {
+            const hoy = new Date();
+            const fin = new Date(info.suscripcion_fin);
+            const diffTime = fin.getTime() - hoy.getTime();
+            diasRestantes = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+        }
+
+        // Obtener historial de pagos Wompi
+        const historialPagos = await db.all(`
+            SELECT referencia, transaccion_id, monto_centavos, estado, metodo_pago, plan_nombre, fecha_pago
+            FROM pagos_wompi
+            WHERE empresa_id = ?
+            ORDER BY id DESC
+            LIMIT 5
+        `, [empresa.id]);
+
         return res.status(200).json({
             ok: true,
             datos: {
                 nombreEmpresa: empresa.nombre,
+                slug: empresa.slug,
                 plan: info.plan_nombre || 'Prueba',
                 estado: info.suscripcion_estado || 'Trial',
-                fechaFin: info.suscripcion_fin || 'Sin fecha'
+                fechaFin: info.suscripcion_fin || 'Sin fecha',
+                diasRestantes,
+                wompiPublicKey: process.env.WOMPI_PUBLIC_KEY || 'pub_test_SozejHwv7Lz78s5QcLceF4RRVPcgSMVx',
+                historialPagos
             }
         });
     } catch (err) {
@@ -626,6 +853,66 @@ app.get('/api/admin/suscripcion', async (req, res) => {
 });
 
 app.use('/api/admin/', adminAuthMiddleware);
+
+/**
+ * @route   PUT /api/admin/personalizacion
+ * @desc    Actualiza la personalización de plantilla, diseño y datos del espacio del centro de estética.
+ * @access  Admin
+ */
+app.put('/api/admin/personalizacion', async (req, res) => {
+    try {
+        const { nombre, descripcion, telefono, direccion, instagram, temaColor, plantillaTipo, heroTitulo, heroSubtitulo } = req.body;
+        
+        await req.db.run(`
+            UPDATE empresas 
+            SET nombre = COALESCE(?, nombre),
+                descripcion = COALESCE(?, descripcion),
+                telefono = COALESCE(?, telefono),
+                direccion = COALESCE(?, direccion),
+                instagram = COALESCE(?, instagram),
+                tema_color = COALESCE(?, tema_color),
+                plantilla_tipo = COALESCE(?, plantilla_tipo),
+                hero_titulo = COALESCE(?, hero_titulo),
+                hero_subtitulo = COALESCE(?, hero_subtitulo)
+            WHERE id = ?
+        `, [
+            nombre !== undefined && nombre !== '' ? nombre.trim() : null,
+            descripcion !== undefined ? descripcion.trim() : null,
+            telefono !== undefined ? telefono.trim() : null,
+            direccion !== undefined ? direccion.trim() : null,
+            instagram !== undefined ? instagram.trim() : null,
+            temaColor || null,
+            plantillaTipo || null,
+            heroTitulo !== undefined ? heroTitulo.trim() : null,
+            heroSubtitulo !== undefined ? heroSubtitulo.trim() : null,
+            req.empresa.id
+        ]);
+
+        const updated = await req.db.get('SELECT * FROM empresas WHERE id = ?', [req.empresa.id]);
+
+        return res.json({
+            ok: true,
+            mensaje: '¡Plantilla y datos de tu espacio web actualizados con éxito!',
+            datos: {
+                id: updated.id,
+                nombre: updated.nombre,
+                slug: updated.slug,
+                descripcion: updated.descripcion,
+                telefono: updated.telefono,
+                direccion: updated.direccion,
+                instagram: updated.instagram,
+                temaColor: updated.tema_color,
+                plantillaTipo: updated.plantilla_tipo,
+                heroTitulo: updated.hero_titulo,
+                heroSubtitulo: updated.hero_subtitulo
+            }
+        });
+    } catch (err) {
+        console.error('Error al actualizar personalización:', err);
+        return res.status(500).json({ ok: false, mensaje: 'Error al guardar cambios de plantilla.' });
+    }
+});
+
 app.use('/api/citas', (req, res, next) => {
     if (req.method === 'GET') {
         return adminAuthMiddleware(req, res, next);
@@ -715,30 +1002,7 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
-/**
- * @route   GET /api/empresa-info
- * @desc    Devuelve nombre, slogan, teléfono y logo del spa para el branding dinámico del cliente.
- * @access  Público
- */
-app.get('/api/empresa-info', async (req, res) => {
-    try {
-        const empresa = req.empresa;
 
-        res.json({
-            ok: true,
-            datos: {
-                nombre: empresa.nombre,
-                slogan: empresa.descripcion || 'Tu Belleza en mis manos',
-                telefono: empresa.telefono || '',
-                logoUrl: empresa.logo || null,
-                slug: empresa.slug
-            }
-        });
-    } catch (err) {
-        console.error('Error en /api/empresa-info:', err.message);
-        res.status(500).json({ ok: false, mensaje: 'Error al obtener información del spa.' });
-    }
-});
 
 /**
  * @route   GET /api/servicios
