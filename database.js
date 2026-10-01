@@ -209,6 +209,20 @@ async function initDB(db) {
         );
     `);
 
+    // 11. Tabla de Galería de Resultados (100% editable por cada empresa)
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS galeria_empresa (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            empresa_id INTEGER NOT NULL,
+            titulo TEXT NOT NULL,
+            subtitulo TEXT,
+            imagen_url TEXT NOT NULL,
+            orden INTEGER DEFAULT 0,
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE
+        );
+    `);
+
     console.log('✅ Base de datos SQLite y esquemas inicializados correctamente.');
 }
 

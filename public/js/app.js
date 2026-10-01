@@ -286,6 +286,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function cargarGaleria() {
+        const galeriaGrid = document.getElementById('galeria-grid');
+        if (!galeriaGrid) return;
+
+        try {
+            const res = await fetch('/api/galeria', {
+                headers: { 'x-tenant-slug': getTenantSlug() }
+            });
+            const data = await res.json();
+
+            if (res.ok && data.ok && Array.isArray(data.datos) && data.datos.length > 0) {
+                galeriaGrid.innerHTML = '';
+                data.datos.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'relative rounded-2xl overflow-hidden group shadow-sm border border-purple-100/60 hover:scale-[1.02] hover:shadow-md transition-all';
+                    card.innerHTML = `
+                        <img src="${item.imagen_url}" alt="${item.titulo}" class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.src='/images/masaje-relajante.jpg'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-purple-950/85 via-transparent to-transparent flex items-end p-4">
+                            <div>
+                                <span class="text-white font-semibold text-sm block">${item.titulo}</span>
+                                <span class="text-purple-200 text-xs">${item.subtitulo || ''}</span>
+                            </div>
+                        </div>
+                    `;
+                    galeriaGrid.appendChild(card);
+                });
+            } else {
+                galeriaGrid.innerHTML = `
+                    <div class="col-span-full text-center py-8 text-text-muted text-xs">
+                        <p>No hay fotos disponibles en la galería por el momento.</p>
+                    </div>
+                `;
+            }
+        } catch (err) {
+            console.error('Error al cargar galería:', err);
+        }
+    }
+
     async function cargarDatosEmpresa() {
         try {
             const res = await fetch('/api/empresa-info', {
@@ -436,29 +474,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     tagIg.classList.remove('hidden');
                 }
 
-                // Adaptar Galería visual si es Barbería
-                if (tema === 'barber' || (datosEmpresaGlobal.plantillaTipo === 'barber')) {
-                    const gImg1 = document.getElementById('galeria-img-1');
-                    const gT1 = document.getElementById('galeria-title-1');
-                    const gS1 = document.getElementById('galeria-sub-1');
-                    if (gImg1) gImg1.src = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80';
-                    if (gT1) gT1.textContent = 'Cortes Clásicos & Fade';
-                    if (gS1) gS1.textContent = 'Degradados precisos y acabados a navaja';
-
-                    const gImg2 = document.getElementById('galeria-img-2');
-                    const gT2 = document.getElementById('galeria-title-2');
-                    const gS2 = document.getElementById('galeria-sub-2');
-                    if (gImg2) gImg2.src = 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=800&q=80';
-                    if (gT2) gT2.textContent = 'Perfilado de Barba Ritual';
-                    if (gS2) gS2.textContent = 'Toalla caliente y aceites botánicos';
-
-                    const gImg3 = document.getElementById('galeria-img-3');
-                    const gT3 = document.getElementById('galeria-title-3');
-                    const gS3 = document.getElementById('galeria-sub-3');
-                    if (gImg3) gImg3.src = 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80';
-                    if (gT3) gT3.textContent = 'Experiencia Lounge VIP';
-                    if (gS3) gS3.textContent = 'Ambiente exclusivo, café y comodidad';
-                }
+                // Cargar Galería de Resultados dinámica desde la base de datos
+                await cargarGaleria();
 
                 const headerSlogan = document.getElementById('header-slogan');
                 if (headerSlogan) headerSlogan.textContent = slogan;

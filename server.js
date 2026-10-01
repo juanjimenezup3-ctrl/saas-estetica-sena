@@ -913,6 +913,125 @@ app.put('/api/admin/personalizacion', async (req, res) => {
     }
 });
 
+/**
+ * @route   GET /api/galeria
+ * @desc    Obtener todas las fotos de la galería de resultados del centro
+ * @access  Público
+ */
+app.get('/api/galeria', async (req, res) => {
+    try {
+        const galeria = await req.db.all('SELECT * FROM galeria_empresa WHERE empresa_id = ? ORDER BY orden ASC, id ASC', [req.empresa.id]);
+        return res.json({
+            ok: true,
+            datos: galeria
+        });
+    } catch (err) {
+        console.error('Error al obtener galería:', err);
+        return res.status(500).json({ ok: false, mensaje: 'Error al consultar galería.' });
+    }
+});
+
+/**
+ * @route   POST /api/admin/galeria
+ * @desc    Agregar una nueva foto a la galería de resultados
+ * @access  Admin
+ */
+app.post('/api/admin/galeria', async (req, res) => {
+    try {
+        const { titulo, subtitulo, imagen_url } = req.body;
+        if (!titulo || !imagen_url) {
+            return res.status(400).json({ ok: false, mensaje: 'El título y la URL de la imagen son obligatorios.' });
+        }
+
+        const countRow = await req.db.get('SELECT COUNT(*) as c FROM galeria_empresa WHERE empresa_id = ?', [req.empresa.id]);
+        const orden = (countRow.c || 0) + 1;
+
+        const result = await req.db.run(`
+            INSERT INTO galeria_empresa (empresa_id, titulo, subtitulo, imagen_url, orden)
+            VALUES (?, ?, ?, ?, ?)
+        `, [req.empresa.id, titulo.trim(), subtitulo ? subtitulo.trim() : '', imagen_url.trim(), orden]);
+
+        const nuevoItem = await req.db.get('SELECT * FROM galeria_empresa WHERE id = ?', [result.lastID]);
+
+        return res.status(201).json({
+            ok: true,
+            mensaje: '¡Foto agregada a la galería con éxito!',
+            datos: nuevoItem
+        });
+    } catch (err) {
+        console.error('Error al agregar a galería:', err);
+        return res.status(500).json({ ok: false, mensaje: 'Error al agregar foto a la galería.' });
+    }
+});
+
+/**
+ * @route   PUT /api/admin/galeria/:id
+ * @desc    Editar foto de la galería
+ * @access  Admin
+ */
+app.put('/api/admin/galeria/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { titulo, subtitulo, imagen_url, orden } = req.body;
+
+        const existing = await req.db.get('SELECT id FROM galeria_empresa WHERE id = ? AND empresa_id = ?', [id, req.empresa.id]);
+        if (!existing) {
+            return res.status(404).json({ ok: false, mensaje: 'Elemento de galería no encontrado.' });
+        }
+
+        await req.db.run(`
+            UPDATE galeria_empresa
+            SET titulo = COALESCE(?, titulo),
+                subtitulo = COALESCE(?, subtitulo),
+                imagen_url = COALESCE(?, imagen_url),
+                orden = COALESCE(?, orden)
+            WHERE id = ? AND empresa_id = ?
+        `, [
+            titulo !== undefined && titulo !== '' ? titulo.trim() : null,
+            subtitulo !== undefined ? subtitulo.trim() : null,
+            imagen_url !== undefined && imagen_url !== '' ? imagen_url.trim() : null,
+            orden !== undefined ? parseInt(orden) : null,
+            id,
+            req.empresa.id
+        ]);
+
+        const updated = await req.db.get('SELECT * FROM galeria_empresa WHERE id = ?', [id]);
+        return res.json({
+            ok: true,
+            mensaje: '¡Elemento de galería actualizado con éxito!',
+            datos: updated
+        });
+    } catch (err) {
+        console.error('Error al actualizar galería:', err);
+        return res.status(500).json({ ok: false, mensaje: 'Error al actualizar elemento de galería.' });
+    }
+});
+
+/**
+ * @route   DELETE /api/admin/galeria/:id
+ * @desc    Eliminar foto de la galería
+ * @access  Admin
+ */
+app.delete('/api/admin/galeria/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const existing = await req.db.get('SELECT id FROM galeria_empresa WHERE id = ? AND empresa_id = ?', [id, req.empresa.id]);
+        if (!existing) {
+            return res.status(404).json({ ok: false, mensaje: 'Elemento de galería no encontrado.' });
+        }
+
+        await req.db.run('DELETE FROM galeria_empresa WHERE id = ? AND empresa_id = ?', [id, req.empresa.id]);
+
+        return res.json({
+            ok: true,
+            mensaje: '¡Foto eliminada de la galería con éxito!'
+        });
+    } catch (err) {
+        console.error('Error al eliminar de galería:', err);
+        return res.status(500).json({ ok: false, mensaje: 'Error al eliminar foto de la galería.' });
+    }
+});
+
 app.use('/api/citas', (req, res, next) => {
     if (req.method === 'GET') {
         return adminAuthMiddleware(req, res, next);

@@ -466,10 +466,178 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // =================================================================
+    // GESTIÓN DE GALERÍA DE RESULTADOS (CRUD MULTI-TENANT)
+    // =================================================================
+    const galeriaAdminGrid = document.getElementById('galeria-admin-grid');
+    const btnAgregarFotoGaleria = document.getElementById('btn-agregar-foto-galeria');
+    const modalGaleriaFoto = document.getElementById('modal-galeria-foto');
+    const formGaleriaFoto = document.getElementById('form-galeria-foto');
+    const btnGaleriaCancelar = document.getElementById('btn-galeria-cancelar');
+    const modalGaleriaTituloText = document.getElementById('modal-galeria-titulo-text');
+    const galeriaFormId = document.getElementById('galeria-form-id');
+    const galeriaFormTitulo = document.getElementById('galeria-form-titulo');
+    const galeriaFormSubtitulo = document.getElementById('galeria-form-subtitulo');
+    const galeriaFormUrl = document.getElementById('galeria-form-url');
+    const galeriaFormOrden = document.getElementById('galeria-form-orden');
+
+    async function cargarGaleriaAdmin() {
+        if (!galeriaAdminGrid) return;
+        try {
+            const slug = getEmpresaSlug();
+            const res = await fetch('/api/galeria', {
+                headers: { 'x-tenant-slug': slug }
+            });
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                const fotos = data.datos || [];
+                if (fotos.length === 0) {
+                    galeriaAdminGrid.innerHTML = `
+                        <div class="col-span-full py-10 text-center border-2 border-dashed border-[#e9d5ff] rounded-2xl p-6 bg-purple-50/20">
+                            <i data-lucide="image" class="w-10 h-10 text-purple-300 mx-auto mb-2"></i>
+                            <p class="text-xs font-bold text-purple-900">Aún no has agregado fotos a tu galería</p>
+                            <p class="text-[0.68rem] text-purple-600 mt-1">Haz clic en "+ Añadir Foto a Galería" para mostrar los mejores resultados a tus clientes.</p>
+                        </div>
+                    `;
+                } else {
+                    galeriaAdminGrid.innerHTML = fotos.map(foto => `
+                        <div class="group relative rounded-2xl border border-[#e9d5ff] bg-white overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                            <div class="h-44 w-full bg-purple-100 overflow-hidden relative">
+                                <img src="${foto.imagen_url}" alt="${foto.titulo}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='/images/logo-samambaia.png'">
+                                <span class="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[0.62rem] px-2 py-0.5 rounded-full font-mono">
+                                    #${foto.orden || 0}
+                                </span>
+                            </div>
+                            <div class="p-3.5 flex-1 flex flex-col justify-between gap-2">
+                                <div>
+                                    <h4 class="text-xs font-bold text-[#3b0764] line-clamp-1">${foto.titulo}</h4>
+                                    <p class="text-[0.68rem] text-purple-700/80 line-clamp-2 mt-0.5">${foto.subtitulo || ''}</p>
+                                </div>
+                                <div class="flex items-center gap-1.5 pt-2 border-t border-purple-50">
+                                    <button type="button" class="btn-editar-foto flex-1 py-1.5 px-2 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-lg text-[0.68rem] font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer" data-id="${foto.id}">
+                                        <i data-lucide="edit-2" class="w-3 h-3"></i> Editar
+                                    </button>
+                                    <button type="button" class="btn-eliminar-foto py-1.5 px-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-[0.68rem] font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer" data-id="${foto.id}" data-titulo="${foto.titulo}">
+                                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Event listeners de editar y eliminar
+                    galeriaAdminGrid.querySelectorAll('.btn-editar-foto').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const id = parseInt(btn.getAttribute('data-id'), 10);
+                            const item = fotos.find(f => f.id === id);
+                            if (item) abrirModalGaleria(item);
+                        });
+                    });
+
+                    galeriaAdminGrid.querySelectorAll('.btn-eliminar-foto').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const id = btn.getAttribute('data-id');
+                            const titulo = btn.getAttribute('data-titulo');
+                            eliminarFotoGaleria(id, titulo);
+                        });
+                    });
+                }
+                lucide.createIcons();
+            }
+        } catch (e) {
+            console.error('Error cargando galería admin:', e);
+        }
+    }
+
+    function abrirModalGaleria(item = null) {
+        if (!modalGaleriaFoto) return;
+        if (item) {
+            modalGaleriaTituloText.textContent = 'Editar Foto de Galería';
+            galeriaFormId.value = item.id;
+            galeriaFormTitulo.value = item.titulo;
+            galeriaFormSubtitulo.value = item.subtitulo || '';
+            galeriaFormUrl.value = item.imagen_url;
+            galeriaFormOrden.value = item.orden || 0;
+        } else {
+            modalGaleriaTituloText.textContent = 'Añadir Foto a Galería';
+            galeriaFormId.value = '';
+            formGaleriaFoto.reset();
+            galeriaFormOrden.value = 0;
+        }
+        modalGaleriaFoto.classList.remove('hidden');
+    }
+
+    if (btnAgregarFotoGaleria) {
+        btnAgregarFotoGaleria.addEventListener('click', () => abrirModalGaleria(null));
+    }
+
+    if (btnGaleriaCancelar && modalGaleriaFoto) {
+        btnGaleriaCancelar.addEventListener('click', () => {
+            modalGaleriaFoto.classList.add('hidden');
+        });
+    }
+
+    if (formGaleriaFoto) {
+        formGaleriaFoto.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = galeriaFormId.value;
+            const payload = {
+                titulo: galeriaFormTitulo.value.trim(),
+                subtitulo: galeriaFormSubtitulo.value.trim(),
+                imagenUrl: galeriaFormUrl.value.trim(),
+                orden: parseInt(galeriaFormOrden.value, 10) || 0
+            };
+
+            const esEdicion = !!id;
+            const url = esEdicion ? `/api/admin/galeria/${id}` : '/api/admin/galeria';
+            const metodo = esEdicion ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method: metodo,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok && data.ok) {
+                    mostrarToast(esEdicion ? '📸 Foto actualizada con éxito.' : '📸 Foto añadida a tu galería.', 'success');
+                    modalGaleriaFoto.classList.add('hidden');
+                    formGaleriaFoto.reset();
+                    await cargarGaleriaAdmin();
+                } else {
+                    mostrarToast(data.mensaje || 'Error al guardar foto.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                mostrarToast('Error de conexión con el servidor.', 'error');
+            }
+        });
+    }
+
+    async function eliminarFotoGaleria(id, titulo) {
+        if (!confirm(`¿Estás seguro de eliminar la foto "${titulo}" de tu galería?`)) return;
+        try {
+            const res = await fetch(`/api/admin/galeria/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                mostrarToast('🗑️ Foto eliminada de la galería.', 'success');
+                await cargarGaleriaAdmin();
+            } else {
+                mostrarToast(data.mensaje || 'Error al eliminar foto.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            mostrarToast('Error de conexión.', 'error');
+        }
+    }
+
     async function cargarPanelAdmin() {
         try {
             // Cargar info del negocio actual (Nombre, Logo, Título dinámico)
             await cargarDatosEmpresaDashboard();
+
+            // Cargar galería de fotos
+            await cargarGaleriaAdmin();
 
             // Cargar configuración de horario de operación
             const resConfig = await fetch('/api/admin/configuracion-horario');
