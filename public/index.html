@@ -32,9 +32,9 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- HEADER — Cabecera Translúcida (Glassmorphism)  -->
+    <!-- HEADER — Cabecera Dinámica por Plantilla       -->
     <!-- ============================================== -->
-    <header class="sticky top-0 z-50 bg-purple-950/90 backdrop-blur-md border-b border-purple-900/40 shadow-md">
+    <header class="sticky top-0 z-50 theme-header backdrop-blur-md shadow-md transition-colors duration-300">
         <div class="max-w-6xl mx-auto px-4 py-3">
             <!-- Fila 1: Logo + Nombre -->
             <div class="flex items-center justify-between">
@@ -44,35 +44,35 @@
                         <i data-lucide="sparkles" class="w-4 h-4"></i>
                     </div>
                     <img id="header-logo-img" src="/images/logo-samambaia.png" alt="Logo"
-                        class="w-10 h-10 rounded-full border-2 border-purple-400/35 object-cover bg-white hover:scale-105 transition-transform">
+                        class="w-10 h-10 rounded-full border-2 border-white/20 object-cover bg-white hover:scale-105 transition-transform">
                     <div>
                         <h1 id="header-nombre-spa"
                             class="text-xl font-serif font-light text-white tracking-wide leading-tight">EstéticaSaaS
                         </h1>
                         <p id="header-slogan"
-                            class="text-[0.6rem] uppercase tracking-widest text-purple-300 font-semibold">Tu Belleza en
+                            class="text-[0.6rem] uppercase tracking-widest text-white/80 font-semibold">Tu Belleza en
                             mis manos</p>
                     </div>
                 </div>
                 <!-- Botón reservar destacado en móvil -->
                 <a href="#agendar"
-                    class="md:hidden px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-purple-700 text-white shadow-md hover:shadow-purple-500/30 transition-all active:scale-95">
+                    class="md:hidden px-4 py-2 rounded-full text-xs font-bold theme-btn-primary transition-all active:scale-95">
                     ✨ Reservar
                 </a>
             </div>
-            <!-- Fila 2: Nav (oculto en móvil muy pequeño, visible en sm+) -->
+            <!-- Fila 2: Nav -->
             <nav class="hidden sm:flex flex-wrap items-center gap-1.5 mt-2.5" id="main-nav">
                 <a href="#inicio"
-                    class="px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-900/50 text-purple-200 border border-purple-800/30 hover:bg-purple-800/60 hover:text-white transition-all nav-pill active">Inicio</a>
+                    class="px-3 py-1.5 rounded-full text-xs font-semibold theme-nav-pill transition-all active">Inicio</a>
                 <a href="#servicios"
-                    class="px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-900/50 text-purple-200 border border-purple-800/30 hover:bg-purple-800/60 hover:text-white transition-all nav-pill">Servicios</a>
+                    class="px-3 py-1.5 rounded-full text-xs font-semibold theme-nav-pill transition-all">Servicios</a>
                 <a href="#galeria"
-                    class="px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-900/50 text-purple-200 border border-purple-800/30 hover:bg-purple-800/60 hover:text-white transition-all nav-pill">Galería</a>
+                    class="px-3 py-1.5 rounded-full text-xs font-semibold theme-nav-pill transition-all">Galería</a>
                 <a href="#agendar"
-                    class="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-purple-700 text-white border-transparent hover:from-purple-600 hover:to-purple-800 transition-all nav-pill">✨
+                    class="px-3.5 py-1.5 rounded-full text-xs font-bold theme-btn-primary transition-all">✨
                     Reservar</a>
                 <a href="#admin"
-                    class="px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-900/50 text-purple-200 border border-purple-800/30 hover:bg-purple-800/60 hover:text-white transition-all nav-pill">Admin</a>
+                    class="px-3 py-1.5 rounded-full text-xs font-semibold theme-nav-pill transition-all">Admin</a>
             </nav>
         </div>
     </header>

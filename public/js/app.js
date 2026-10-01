@@ -401,8 +401,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
 
-                // Aplicar paleta CSS
+                // Aplicar paleta CSS y atributo data-theme
                 const tema = datosEmpresaGlobal.temaColor || (slug.includes('barber') ? 'barber' : 'purple');
+                document.body.setAttribute('data-theme', tema);
+                document.documentElement.setAttribute('data-theme', tema);
+                
                 const paleta = PALETTES[tema] || PALETTES.purple;
                 for (const [prop, val] of Object.entries(paleta)) {
                     if (prop.startsWith('--')) {

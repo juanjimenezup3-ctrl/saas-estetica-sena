@@ -318,6 +318,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputTema = document.getElementById('custom-tema-selected');
         if (inputTema) inputTema.value = tema;
 
+        document.body.setAttribute('data-theme', tema);
+        document.documentElement.setAttribute('data-theme', tema);
+
+        const paleta = DASH_PALETTES[tema] || DASH_PALETTES.purple;
+        for (const [prop, val] of Object.entries(paleta)) {
+            document.documentElement.style.setProperty(prop, val);
+        }
+
         document.querySelectorAll('.card-tema-option').forEach(card => {
             const cardTema = card.getAttribute('data-tema');
             const check = card.querySelector('.tema-check-circle');
@@ -391,12 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Marcar tema activo
                 const temaActual = emp.temaColor || (slug.includes('barber') ? 'barber' : 'purple');
                 marcarTemaActivo(temaActual);
-
-                // Aplicar paleta en el dashboard
-                const paleta = DASH_PALETTES[temaActual] || DASH_PALETTES.purple;
-                for (const [prop, val] of Object.entries(paleta)) {
-                    document.documentElement.style.setProperty(prop, val);
-                }
 
                 // Logos
                 const headerLogoImg = document.getElementById('header-logo-img');

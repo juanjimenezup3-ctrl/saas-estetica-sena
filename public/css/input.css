@@ -77,6 +77,148 @@ h1, h2, h3, h4, .font-serif {
     --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* ==========================================
+   DYNAMIC THEME ENGINE (5 STYLES)
+   ========================================== */
+.theme-header {
+    background-color: var(--color-header-bg, #3b0764) !important;
+    border-bottom: 1px solid var(--color-header-border, rgba(147, 51, 234, 0.3)) !important;
+}
+
+.theme-nav-pill {
+    background-color: var(--color-nav-bg, rgba(88, 28, 135, 0.5)) !important;
+    color: var(--color-nav-text, #e9d5ff) !important;
+    border: 1px solid var(--color-nav-border, rgba(126, 34, 206, 0.4)) !important;
+}
+.theme-nav-pill:hover, .theme-nav-pill.active {
+    background-color: var(--color-nav-hover, #7e22ce) !important;
+    color: #ffffff !important;
+}
+
+.theme-btn-primary {
+    background: var(--color-btn-gradient, linear-gradient(135deg, #7c3aed, #5b21b6)) !important;
+    color: var(--color-btn-text, #ffffff) !important;
+    box-shadow: 0 4px 14px var(--color-btn-shadow, rgba(124, 58, 237, 0.3)) !important;
+}
+.theme-btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.theme-badge {
+    background-color: var(--color-purple-soft, #f3e5f5) !important;
+    color: var(--color-purple-deep, #6a1b9a) !important;
+    border: 1px solid var(--color-purple-light, #ab47bc) !important;
+}
+
+.theme-heading {
+    color: var(--color-purple-deep, #6a1b9a) !important;
+}
+
+.theme-accent {
+    color: var(--color-purple-mid, #8e24aa) !important;
+}
+
+/* 1. Barbería Vintage */
+[data-theme="barber"], body[data-theme="barber"] {
+    --color-header-bg: #09090b;
+    --color-header-border: #27272a;
+    --color-nav-bg: #18181b;
+    --color-nav-text: #fef3c7;
+    --color-nav-border: #3f3f46;
+    --color-nav-hover: #b45309;
+    --color-btn-gradient: linear-gradient(135deg, #d97706, #b45309);
+    --color-btn-text: #ffffff;
+    --color-btn-shadow: rgba(217, 119, 6, 0.4);
+    --color-purple-deep: #18181b;
+    --color-purple-mid: #b45309;
+    --color-purple-light: #d97706;
+    --color-purple-soft: #fef3c7;
+    --color-bg-page: #f9f8f6;
+    --color-text-dark: #18181b;
+    --color-gold-custom: #b45309;
+}
+
+/* 2. Eco Botánico */
+[data-theme="emerald"], body[data-theme="emerald"] {
+    --color-header-bg: #064e3b;
+    --color-header-border: #047857;
+    --color-nav-bg: #065f46;
+    --color-nav-text: #d1fae5;
+    --color-nav-border: #059669;
+    --color-nav-hover: #047857;
+    --color-btn-gradient: linear-gradient(135deg, #059669, #047857);
+    --color-btn-text: #ffffff;
+    --color-btn-shadow: rgba(5, 150, 105, 0.4);
+    --color-purple-deep: #064e3b;
+    --color-purple-mid: #059669;
+    --color-purple-light: #10b981;
+    --color-purple-soft: #d1fae5;
+    --color-bg-page: #f0fdf4;
+    --color-text-dark: #064e3b;
+    --color-gold-custom: #059669;
+}
+
+/* 3. Beauty & Glow */
+[data-theme="rose"], body[data-theme="rose"] {
+    --color-header-bg: #881337;
+    --color-header-border: #be123c;
+    --color-nav-bg: #9f1239;
+    --color-nav-text: #ffe4e6;
+    --color-nav-border: #e11d48;
+    --color-nav-hover: #be123c;
+    --color-btn-gradient: linear-gradient(135deg, #e11d48, #be123c);
+    --color-btn-text: #ffffff;
+    --color-btn-shadow: rgba(225, 29, 72, 0.4);
+    --color-purple-deep: #881337;
+    --color-purple-mid: #e11d48;
+    --color-purple-light: #fb7185;
+    --color-purple-soft: #ffe4e6;
+    --color-bg-page: #fff1f2;
+    --color-text-dark: #881337;
+    --color-gold-custom: #e11d48;
+}
+
+/* 4. Clínica Derma */
+[data-theme="ocean"], body[data-theme="ocean"] {
+    --color-header-bg: #0f172a;
+    --color-header-border: #0369a1;
+    --color-nav-bg: #1e293b;
+    --color-nav-text: #e0f2fe;
+    --color-nav-border: #0284c7;
+    --color-nav-hover: #0369a1;
+    --color-btn-gradient: linear-gradient(135deg, #0284c7, #0369a1);
+    --color-btn-text: #ffffff;
+    --color-btn-shadow: rgba(2, 132, 199, 0.4);
+    --color-purple-deep: #0f172a;
+    --color-purple-mid: #0284c7;
+    --color-purple-light: #38bdf8;
+    --color-purple-soft: #e0f2fe;
+    --color-bg-page: #f8fafc;
+    --color-text-dark: #0f172a;
+    --color-gold-custom: #0284c7;
+}
+
+/* 5. Spa Zen */
+[data-theme="purple"], body[data-theme="purple"] {
+    --color-header-bg: #3b0764;
+    --color-header-border: rgba(147, 51, 234, 0.3);
+    --color-nav-bg: rgba(88, 28, 135, 0.5);
+    --color-nav-text: #e9d5ff;
+    --color-nav-border: rgba(126, 34, 206, 0.4);
+    --color-nav-hover: #7e22ce;
+    --color-btn-gradient: linear-gradient(135deg, #7c3aed, #5b21b6);
+    --color-btn-text: #ffffff;
+    --color-btn-shadow: rgba(124, 58, 237, 0.3);
+    --color-purple-deep: #6a1b9a;
+    --color-purple-mid: #8e24aa;
+    --color-purple-light: #ab47bc;
+    --color-purple-soft: #f3e5f5;
+    --color-bg-page: #f9f6fb;
+    --color-text-dark: #2d2235;
+    --color-gold-custom: #c9a84c;
+}
+
 /* Tarjetas de Servicios */
 .servicio-card {
     background-color: var(--color-bg-white);
