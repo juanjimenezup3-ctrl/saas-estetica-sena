@@ -676,6 +676,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Cargar datos de la suscripción SaaS
             await cargarDatosSuscripcion();
+
+            // Cargar directorio de clientes CRM y métricas de reportes
+            await cargarDirectorioClientes();
+            await cargarReportesNegocio();
         } catch (error) {
             console.error('Error cargando panel admin:', error);
             alert('Error de conexión con el servidor.');
@@ -1756,6 +1760,220 @@ document.addEventListener('DOMContentLoaded', () => {
         // Calcular ingresos sumando precios
         const totalIngresos = activas.reduce((acc, curr) => acc + curr.precio, 0);
         ingresosStat.textContent = `$${totalIngresos.toLocaleString('es-CO')} COP`;
+    }
+
+    // =================================================================
+    // DIRECTORIO DE CLIENTES (CRM) Y REPORTES FINANCIEROS
+    // =================================================================
+    let clientesGlobal = [];
+
+    async function cargarDirectorioClientes() {
+        try {
+            const res = await fetch('/api/admin/clientes');
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                clientesGlobal = data.datos || [];
+                renderizarDirectorioClientes(clientesGlobal);
+            }
+        } catch (err) {
+            console.error('Error al cargar clientes CRM:', err);
+        }
+    }
+
+    function renderizarDirectorioClientes(lista) {
+        const tbody = document.getElementById('admin-clientes-table-body');
+        const badge = document.getElementById('badge-total-clientes');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (badge) badge.textContent = `${lista.length} Cliente${lista.length === 1 ? '' : 's'}`;
+
+        if (lista.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="py-6 text-center text-purple-900/60 text-xs italic">
+                        No se encontraron clientes registrados con ese criterio.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        lista.forEach(cli => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-purple-50/30 transition-colors border-b border-purple-100/40';
+
+            // Obtener iniciales para avatar
+            const partes = (cli.nombre || 'Cliente').trim().split(' ');
+            const iniciales = partes.length > 1 
+                ? (partes[0][0] + partes[1][0]).toUpperCase() 
+                : partes[0].substring(0, 2).toUpperCase();
+
+            const ultimaFechaTexto = cli.ultima_visita 
+                ? formatearFechaLarga(cli.ultima_visita) 
+                : 'Sin visitas recientes';
+
+            const totalGastadoTexto = `$${(cli.total_gastado || 0).toLocaleString('es-CO')} COP`;
+
+            tr.innerHTML = `
+                <td class="py-3 px-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-700 to-indigo-600 text-white font-bold text-[0.72rem] flex items-center justify-center flex-shrink-0 shadow-sm">
+                            ${iniciales}
+                        </div>
+                        <div>
+                            <div class="font-bold text-purple-950 text-[0.82rem] leading-tight">${cli.nombre}</div>
+                            <div class="text-[0.68rem] text-purple-700/70">ID #${cli.id} · Registrado</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3 px-3">
+                    <span class="font-medium text-purple-900 text-[0.78rem]">${cli.telefono}</span>
+                </td>
+                <td class="py-3 px-3 text-center">
+                    <span class="inline-block bg-purple-100 text-purple-900 font-bold text-[0.7rem] px-2.5 py-0.5 rounded-full">
+                        ${cli.total_citas} ${cli.total_citas === 1 ? 'cita' : 'citas'}
+                    </span>
+                </td>
+                <td class="py-3 px-3">
+                    <span class="inline-flex items-center gap-1 text-purple-950 font-medium text-[0.78rem]">
+                        🌸 ${cli.servicio_preferido || 'No especificado'}
+                    </span>
+                </td>
+                <td class="py-3 px-3">
+                    <span class="font-bold text-purple-950 text-[0.82rem]">${totalGastadoTexto}</span>
+                </td>
+                <td class="py-3 px-3 text-purple-900/80 text-[0.75rem]">
+                    ${ultimaFechaTexto}
+                </td>
+                <td class="py-3 px-3 text-right">
+                    <button type="button" class="btn-contacto-cliente-wa inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-sm text-[0.7rem] active:scale-95 transition-all cursor-pointer">
+                        <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                        WhatsApp
+                    </button>
+                </td>
+            `;
+
+            // Acción WhatsApp
+            tr.querySelector('.btn-contacto-cliente-wa').addEventListener('click', () => {
+                const nombreLimpio = cli.nombre.split(' ')[0];
+                const msg = `¡Hola ${nombreLimpio}! 🌸 Te saludamos desde *Samambaia Spa*. Esperamos te encuentres muy bien. ¿Te gustaría agendar una nueva sesión de bienestar esta semana? 💆‍♀️✨`;
+                const telLimpio = (cli.telefono || '').replace(/\D/g, '');
+                const telConPrefijo = telLimpio.startsWith('57') ? telLimpio : `57${telLimpio}`;
+                window.open(`https://wa.me/${telConPrefijo}?text=${encodeURIComponent(msg)}`, '_blank');
+            });
+
+            tbody.appendChild(tr);
+        });
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    // Buscador en vivo de clientes
+    const inputBuscador = document.getElementById('buscador-clientes');
+    if (inputBuscador) {
+        inputBuscador.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            if (!query) {
+                renderizarDirectorioClientes(clientesGlobal);
+                return;
+            }
+            const filtrados = clientesGlobal.filter(c => 
+                (c.nombre && c.nombre.toLowerCase().includes(query)) ||
+                (c.telefono && c.telefono.includes(query)) ||
+                (c.servicio_preferido && c.servicio_preferido.toLowerCase().includes(query))
+            );
+            renderizarDirectorioClientes(filtrados);
+        });
+    }
+
+    // Cargar y renderizar Reportes
+    async function cargarReportesNegocio() {
+        try {
+            const res = await fetch('/api/admin/reportes');
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                renderizarReportesNegocio(data.datos);
+            }
+        } catch (err) {
+            console.error('Error al cargar reportes:', err);
+        }
+    }
+
+    function renderizarReportesNegocio(datos) {
+        if (!datos) return;
+
+        const elReales = document.getElementById('rep-ingresos-reales');
+        const elProy = document.getElementById('rep-ingresos-proyectados');
+        const elTicket = document.getElementById('rep-ticket-promedio');
+        const elTasa = document.getElementById('rep-tasa-asistencia');
+        const tbodyServicios = document.getElementById('admin-reportes-servicios-body');
+
+        if (elReales) elReales.textContent = `$${(datos.ingresosReales || 0).toLocaleString('es-CO')} COP`;
+        if (elProy) elProy.textContent = `$${(datos.ingresosProyectados || 0).toLocaleString('es-CO')} COP`;
+        if (elTicket) elTicket.textContent = `$${(datos.ticketPromedio || 0).toLocaleString('es-CO')} COP`;
+        if (elTasa) elTasa.textContent = `${datos.tasaAsistencia || 100}%`;
+
+        if (tbodyServicios) {
+            tbodyServicios.innerHTML = '';
+            const servicios = datos.topServicios || [];
+
+            if (servicios.length === 0) {
+                tbodyServicios.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-6 text-center text-purple-900/60 text-xs italic">
+                            No hay datos suficientes de reservas para generar el reporte.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const maxReservas = Math.max(...servicios.map(s => s.cantidad_reservas || 1), 1);
+
+            servicios.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-purple-50/30 transition-colors border-b border-purple-100/40';
+                
+                const pct = Math.round(((s.cantidad_reservas || 0) / maxReservas) * 100);
+
+                tr.innerHTML = `
+                    <td class="py-3 px-3">
+                        <div class="font-bold text-purple-950 text-[0.82rem]">${s.nombre}</div>
+                    </td>
+                    <td class="py-3 px-3">
+                        <span class="inline-block bg-purple-50 border border-purple-200 text-purple-800 text-[0.68rem] font-semibold px-2 py-0.5 rounded">
+                            ${s.categoria}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3 text-purple-950 font-medium text-[0.8rem]">
+                        $${(s.precio || 0).toLocaleString('es-CO')} COP
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                        <span class="font-bold text-purple-950 text-[0.82rem]">${s.cantidad_reservas}</span>
+                    </td>
+                    <td class="py-3 px-3 font-bold text-purple-950 text-[0.82rem]">
+                        $${(s.total_generado || 0).toLocaleString('es-CO')} COP
+                    </td>
+                    <td class="py-3 px-3 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <div class="w-16 bg-purple-100 rounded-full h-2 overflow-hidden">
+                                <div class="bg-purple-600 h-2 rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                            <span class="text-[0.68rem] font-bold text-purple-700 w-8 text-right">${pct}%</span>
+                        </div>
+                    </td>
+                `;
+
+                tbodyServicios.appendChild(tr);
+            });
+
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
     }
 
     // Navegación de semanas

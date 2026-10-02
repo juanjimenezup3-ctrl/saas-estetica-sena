@@ -686,6 +686,115 @@
             </div>
         </section>
 
+        <!-- ============================================== -->
+        <!-- SECCIÓN: DIRECTORIO DE CLIENTES (CRM DEL SPA)  -->
+        <!-- ============================================== -->
+        <section class="bg-white border border-[#e9d5ff] p-6 rounded-3xl shadow-sm space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e9d5ff] gap-3">
+                <div class="space-y-1">
+                    <h3 class="text-lg font-serif text-[#3b0764] flex items-center gap-2">
+                        <i data-lucide="users" class="text-[#7c3aed]"></i>
+                        Directorio de Clientes (CRM)
+                        <span id="badge-total-clientes" class="text-[0.68rem] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full ml-1">0 Clientes</span>
+                    </h3>
+                    <p class="text-xs text-[#6d28d9]">Base de datos consolidada con historial de visitas, consumo acumulado y contacto directo.</p>
+                </div>
+                <div class="relative w-full sm:w-64">
+                    <i data-lucide="search" class="w-4 h-4 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="buscador-clientes" placeholder="Buscar por nombre o celular..." class="w-full pl-9 pr-3 py-2 bg-purple-50/30 border border-purple-200 rounded-xl text-xs text-purple-950 focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto border border-[#e9d5ff] rounded-xl bg-purple-50/20">
+                <table class="w-full text-xs text-left border-collapse" id="admin-clientes-table">
+                    <thead>
+                        <tr class="bg-purple-900 text-white font-bold">
+                            <th class="py-2.5 px-3 rounded-l-lg">Cliente</th>
+                            <th class="py-2.5 px-3">Celular</th>
+                            <th class="py-2.5 px-3 text-center">Visitas</th>
+                            <th class="py-2.5 px-3">Servicio Favorito</th>
+                            <th class="py-2.5 px-3">Total Invertido</th>
+                            <th class="py-2.5 px-3">Última Cita</th>
+                            <th class="py-2.5 px-3 text-right rounded-r-lg">Contacto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-clientes-table-body" class="divide-y divide-[#e9d5ff]/20">
+                        <!-- Inyectado dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECCIÓN: REPORTES FINANCIEROS Y RENDIMIENTO    -->
+        <!-- ============================================== -->
+        <section class="bg-white border border-[#e9d5ff] p-6 rounded-3xl shadow-sm space-y-6">
+            <div class="space-y-1 pb-3 border-b border-[#e9d5ff]">
+                <h3 class="text-lg font-serif text-[#3b0764] flex items-center gap-2">
+                    <i data-lucide="bar-chart-3" class="text-[#7c3aed]"></i>
+                    Reportes Financieros y Rendimiento Operativo
+                </h3>
+                <p class="text-xs text-[#6d28d9]">Métricas consolidadas de facturación, fidelización y demanda de servicios del spa.</p>
+            </div>
+
+            <!-- Mini KPIs de Reporte -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-purple-50/40 border border-purple-200/60 p-4 rounded-2xl">
+                    <span class="text-[0.68rem] font-bold uppercase text-purple-700 block tracking-wider">Ingresos Facturados</span>
+                    <span class="text-xl font-bold text-purple-950 mt-1 block" id="rep-ingresos-reales">$0 COP</span>
+                    <span class="text-[0.65rem] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i> Citas completadas
+                    </span>
+                </div>
+                <div class="bg-purple-50/40 border border-purple-200/60 p-4 rounded-2xl">
+                    <span class="text-[0.68rem] font-bold uppercase text-purple-700 block tracking-wider">Ingresos Proyectados</span>
+                    <span class="text-xl font-bold text-purple-950 mt-1 block" id="rep-ingresos-proyectados">$0 COP</span>
+                    <span class="text-[0.65rem] text-purple-600 font-semibold flex items-center gap-1 mt-0.5">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> Agenda total activa
+                    </span>
+                </div>
+                <div class="bg-purple-50/40 border border-purple-200/60 p-4 rounded-2xl">
+                    <span class="text-[0.68rem] font-bold uppercase text-purple-700 block tracking-wider">Ticket Promedio</span>
+                    <span class="text-xl font-bold text-purple-950 mt-1 block" id="rep-ticket-promedio">$0 COP</span>
+                    <span class="text-[0.65rem] text-purple-600 font-semibold flex items-center gap-1 mt-0.5">
+                        <i data-lucide="receipt" class="w-3 h-3"></i> Gasto medio por cita
+                    </span>
+                </div>
+                <div class="bg-purple-50/40 border border-purple-200/60 p-4 rounded-2xl">
+                    <span class="text-[0.68rem] font-bold uppercase text-purple-700 block tracking-wider">Tasa de Cumplimiento</span>
+                    <span class="text-xl font-bold text-purple-950 mt-1 block" id="rep-tasa-asistencia">100%</span>
+                    <span class="text-[0.65rem] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+                        <i data-lucide="shield-check" class="w-3 h-3"></i> Asistencia confirmada
+                    </span>
+                </div>
+            </div>
+
+            <!-- Tabla de Desglose de Servicios Más Demandados -->
+            <div class="space-y-3 pt-2">
+                <h4 class="text-xs font-bold text-purple-950 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-purple-600"></i>
+                    Ranking de Servicios Más Solicitados (Demanda y Rentabilidad)
+                </h4>
+                <div class="overflow-x-auto border border-[#e9d5ff] rounded-xl bg-purple-50/20">
+                    <table class="w-full text-xs text-left border-collapse" id="admin-reportes-servicios-table">
+                        <thead>
+                            <tr class="bg-purple-800 text-white font-bold">
+                                <th class="py-2.5 px-3 rounded-l-lg">Tratamiento / Servicio</th>
+                                <th class="py-2.5 px-3">Categoría</th>
+                                <th class="py-2.5 px-3">Precio Base</th>
+                                <th class="py-2.5 px-3 text-center">Citas Reservadas</th>
+                                <th class="py-2.5 px-3">Total Generado</th>
+                                <th class="py-2.5 px-3 text-right rounded-r-lg">Demanda</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-reportes-servicios-body" class="divide-y divide-[#e9d5ff]/20">
+                            <!-- Inyectado dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- ============================================== -->

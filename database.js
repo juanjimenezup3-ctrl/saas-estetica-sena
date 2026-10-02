@@ -301,12 +301,110 @@ async function seedInitialTenant() {
         VALUES (?, 'admin@demoestetica.com', '123456')
     `, [empresaId]);
 
+    // 6. Cargar 5 Clientes Simulados con Citas
+    await seedClientesSimulados(db, empresaId);
+
     console.log('✅ Seeder completado con éxito.');
     console.log('   Usuario demo 1: admin           | Contraseña: admin123');
     console.log('   Usuario demo 2: admin@demoestetica.com | Contraseña: 123456');
 }
 
+/**
+ * Seeder de 5 Clientes Simulados del Spa y sus citas operativas
+ */
+async function seedClientesSimulados(db, empresaId) {
+    if (!db) db = await connectDB();
+    if (!empresaId) {
+        const emp = await db.get('SELECT id FROM empresas WHERE slug = ?', ['samambaia']);
+        if (!emp) return;
+        empresaId = emp.id;
+    }
+
+    const clientas = [
+        {
+            nombre: 'Valentina Gómez',
+            telefono: '3105551234',
+            edad: 28,
+            genero: 'Femenino',
+            citas: [
+                { servicioNombre: 'Masaje Relajante', fecha: '2026-09-28', hora: '10:00', duracion: 60, estado: 'Completada', idPublico: 'SAM-0101' },
+                { servicioNombre: 'Tratamiento Facial', fecha: '2026-10-02', hora: '11:00', duracion: 60, estado: 'Confirmada', idPublico: 'SAM-0102' },
+                { servicioNombre: 'Cejas y Pestañas', fecha: '2026-10-06', hora: '16:00', duracion: 45, estado: 'Confirmada', idPublico: 'SAM-0103' }
+            ]
+        },
+        {
+            nombre: 'Camila Rodríguez',
+            telefono: '3158884321',
+            edad: 32,
+            genero: 'Femenino',
+            citas: [
+                { servicioNombre: 'Uñas Semipermanentes', fecha: '2026-09-29', hora: '15:00', duracion: 60, estado: 'Completada', idPublico: 'SAM-0104' },
+                { servicioNombre: 'Uñas Semipermanentes', fecha: '2026-10-03', hora: '14:00', duracion: 60, estado: 'Confirmada', idPublico: 'SAM-0105' }
+            ]
+        },
+        {
+            nombre: 'Daniela Morales',
+            telefono: '3209998765',
+            edad: 26,
+            genero: 'Femenino',
+            citas: [
+                { servicioNombre: 'Drenaje Linfático', fecha: '2026-09-25', hora: '09:00', duracion: 60, estado: 'Completada', idPublico: 'SAM-0106' },
+                { servicioNombre: 'Drenaje Linfático', fecha: '2026-10-02', hora: '09:00', duracion: 60, estado: 'Confirmada', idPublico: 'SAM-0107' }
+            ]
+        },
+        {
+            nombre: 'Sofía Castañeda',
+            telefono: '3124449876',
+            edad: 34,
+            genero: 'Femenino',
+            citas: [
+                { servicioNombre: 'Paquete Novias', fecha: '2026-10-03', hora: '10:00', duracion: 180, estado: 'Confirmada', idPublico: 'SAM-0108' }
+            ]
+        },
+        {
+            nombre: 'Mariana Silva',
+            telefono: '3173336543',
+            edad: 29,
+            genero: 'Femenino',
+            citas: [
+                { servicioNombre: 'Uñas Acrílicas', fecha: '2026-09-30', hora: '16:00', duracion: 90, estado: 'Completada', idPublico: 'SAM-0109' },
+                { servicioNombre: 'Uñas Acrílicas', fecha: '2026-10-05', hora: '15:00', duracion: 90, estado: 'Confirmada', idPublico: 'SAM-0110' }
+            ]
+        }
+    ];
+
+    for (const c of clientas) {
+        let usuario = await db.get('SELECT id FROM usuarios WHERE empresa_id = ? AND telefono = ?', [empresaId, c.telefono]);
+        let usuarioId;
+        if (!usuario) {
+            const resU = await db.run(`
+                INSERT INTO usuarios (empresa_id, nombre, telefono, edad, genero)
+                VALUES (?, ?, ?, ?, ?)
+            `, [empresaId, c.nombre, c.telefono, c.edad, c.genero]);
+            usuarioId = resU.lastID;
+        } else {
+            usuarioId = usuario.id;
+        }
+
+        for (const cita of c.citas) {
+            const serv = await db.get('SELECT id, precio FROM servicios WHERE empresa_id = ? AND nombre = ?', [empresaId, cita.servicioNombre]);
+            if (serv) {
+                const citaExistente = await db.get('SELECT id FROM citas WHERE id_publico = ?', [cita.idPublico]);
+                if (!citaExistente) {
+                    await db.run(`
+                        INSERT INTO citas (id_publico, empresa_id, usuario_id, servicio_id, fecha, hora, duracion, estado, precio_cobrado)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `, [cita.idPublico, empresaId, usuarioId, serv.id, cita.fecha, cita.hora, cita.duracion, cita.estado, serv.precio]);
+                }
+            }
+        }
+    }
+    console.log('✅ 5 Clientes simulados y citas registradas correctamente para la empresa.');
+}
+
 module.exports = {
     connectDB,
-    seedInitialTenant
+    seedInitialTenant,
+    seedClientesSimulados
 };
+

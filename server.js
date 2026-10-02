@@ -2136,6 +2136,118 @@ app.get('/api/citas', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/admin/clientes
+ * @desc    Obtiene el directorio de clientes con métricas de visitas, gasto y servicio preferido.
+ * @access  Admin
+ */
+app.get('/api/admin/clientes', async (req, res) => {
+    try {
+        const db = req.db;
+        const empresa = req.empresa;
+
+        const clientes = await db.all(`
+            SELECT 
+                u.id,
+                u.nombre,
+                u.telefono,
+                u.fecha_registro,
+                COUNT(c.id) as total_citas,
+                COALESCE(SUM(CASE WHEN c.estado IN ('Confirmada', 'Completada') THEN c.precio_cobrado ELSE 0 END), 0) as total_gastado,
+                MAX(c.fecha) as ultima_visita,
+                (SELECT s.nombre FROM citas c2 JOIN servicios s ON c2.servicio_id = s.id 
+                 WHERE c2.usuario_id = u.id AND c2.empresa_id = ? 
+                 GROUP BY s.id ORDER BY COUNT(*) DESC LIMIT 1) as servicio_preferido
+            FROM usuarios u
+            LEFT JOIN citas c ON u.id = c.usuario_id AND c.empresa_id = ?
+            WHERE u.empresa_id = ?
+            GROUP BY u.id
+            ORDER BY total_citas DESC, total_gastado DESC
+        `, [empresa.id, empresa.id, empresa.id]);
+
+        return res.status(200).json({
+            ok: true,
+            mensaje: 'Directorio de clientes obtenido exitosamente.',
+            total: clientes.length,
+            datos: clientes
+        });
+    } catch (err) {
+        console.error('❌ [GET /api/admin/clientes] Error:', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error al obtener lista de clientes' });
+    }
+});
+
+/**
+ * @route   GET /api/admin/reportes
+ * @desc    Genera reporte financiero y operativo consolidado (KPIs y desglose de servicios).
+ * @access  Admin
+ */
+app.get('/api/admin/reportes', async (req, res) => {
+    try {
+        const db = req.db;
+        const empresa = req.empresa;
+
+        // 1. Ingresos y resumen de citas
+        const resumen = await db.get(`
+            SELECT 
+                COALESCE(SUM(CASE WHEN estado = 'Completada' THEN precio_cobrado ELSE 0 END), 0) as ingresos_reales,
+                COALESCE(SUM(CASE WHEN estado IN ('Confirmada', 'Completada') THEN precio_cobrado ELSE 0 END), 0) as ingresos_proyectados,
+                COUNT(id) as total_citas,
+                COALESCE(SUM(CASE WHEN estado = 'Completada' THEN 1 ELSE 0 END), 0) as citas_completadas,
+                COALESCE(SUM(CASE WHEN estado = 'Confirmada' THEN 1 ELSE 0 END), 0) as citas_pendientes,
+                COALESCE(SUM(CASE WHEN estado = 'Cancelada' THEN 1 ELSE 0 END), 0) as citas_canceladas
+            FROM citas
+            WHERE empresa_id = ?
+        `, [empresa.id]);
+
+        // 2. Ranking de Servicios más solicitados
+        const topServicios = await db.all(`
+            SELECT 
+                s.nombre,
+                s.categoria,
+                s.precio,
+                COUNT(c.id) as cantidad_reservas,
+                COALESCE(SUM(c.precio_cobrado), 0) as total_generado
+            FROM servicios s
+            LEFT JOIN citas c ON s.id = c.servicio_id AND c.empresa_id = ?
+            WHERE s.empresa_id = ?
+            GROUP BY s.id
+            ORDER BY cantidad_reservas DESC, total_generado DESC
+            LIMIT 5
+        `, [empresa.id, empresa.id]);
+
+        const atendidas = (resumen.citas_completadas || 0) + (resumen.citas_pendientes || 0);
+        const ticketPromedio = atendidas > 0
+            ? Math.round(resumen.ingresos_proyectados / atendidas)
+            : 0;
+
+        const totalCerradas = (resumen.citas_completadas || 0) + (resumen.citas_canceladas || 0);
+        const tasaAsistencia = totalCerradas > 0
+            ? Math.round((resumen.citas_completadas / totalCerradas) * 100)
+            : 100;
+
+        return res.status(200).json({
+            ok: true,
+            mensaje: 'Reportes generados exitosamente.',
+            datos: {
+                ingresosReales: resumen.ingresos_reales,
+                ingresosProyectados: resumen.ingresos_proyectados,
+                totalCitas: resumen.total_citas,
+                citasCompletadas: resumen.citas_completadas,
+                citasPendientes: resumen.citas_pendientes,
+                citasCanceladas: resumen.citas_canceladas,
+                ticketPromedio,
+                tasaAsistencia,
+                topServicios
+            }
+        });
+    } catch (err) {
+        console.error('❌ [GET /api/admin/reportes] Error:', err.message);
+        return res.status(500).json({ ok: false, mensaje: 'Error al generar métricas de reporte' });
+    }
+});
+
+
+/**
  * @route   GET /api/admin/automatizacion
  * @desc    Obtiene la configuración y el historial de automatización.
  * @access  Admin
