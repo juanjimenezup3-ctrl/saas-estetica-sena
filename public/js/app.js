@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="flex flex-col gap-0.5">${priceHtml}</div>
                         <span class="servicio-tag tag-duracion">⏱️ ${s.duracion} min</span>
                     </div>
-                    <button type="button" class="btn-reservar-servicio w-full mt-3 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer" data-id="${s.id}">
+                    <button type="button" class="btn-reservar-servicio theme-btn-primary w-full mt-3 py-2.5 text-white font-semibold rounded-full shadow-md active:scale-95 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer" data-id="${s.id}">
                         <i data-lucide="calendar-plus" class="w-4 h-4"></i>
                         Reservar Ahora
                     </button>
@@ -337,87 +337,156 @@ document.addEventListener('DOMContentLoaded', () => {
                 const telefono = datosEmpresaGlobal.telefono || '3001234567';
                 const slug = getTenantSlug();
 
-                // Paletas de temas disponibles para tenants
+                // Paletas de temas completas para tenants
                 const PALETTES = {
                     purple: {
-                        '--color-purple-deep': '#6a1b9a',
-                        '--color-purple-mid': '#8e24aa',
-                        '--color-purple-light': '#ab47bc',
-                        '--color-purple-soft': '#f3e5f5',
-                        '--color-purple-dark': '#4a148c',
-                        '--color-bg-page': '#f9f6fb',
-                        '--color-border-light': '#e8e0ee',
-                        '--color-text-dark': '#2d2235',
-                        badge: '✨ Spa & Wellness',
+                        '--color-header-bg': '#3b0764',
+                        '--color-header-border': 'rgba(147, 51, 234, 0.3)',
+                        '--color-nav-bg': 'rgba(88, 28, 135, 0.5)',
+                        '--color-nav-text': '#e9d5ff',
+                        '--color-nav-border': 'rgba(126, 34, 206, 0.4)',
+                        '--color-nav-hover': '#7e22ce',
+                        '--color-btn-gradient': 'linear-gradient(135deg, #7c3aed, #5b21b6)',
+                        '--color-btn-text': '#ffffff',
+                        '--color-btn-shadow': 'rgba(124, 58, 237, 0.35)',
+                        '--color-purple-deep': '#3b0764',
+                        '--color-purple-mid': '#7c3aed',
+                        '--color-purple-light': '#a855f7',
+                        '--color-purple-soft': '#f3e8ff',
+                        '--color-purple-dark': '#2e1065',
+                        '--color-bg-page': '#faf5ff',
+                        '--color-border-light': '#e9d5ff',
+                        '--color-text-dark': '#1e1b4b',
+                        badge: '✨ Spa & Wellness Zen',
                         icon: 'sparkles'
                     },
                     barber: {
-                        '--color-purple-deep': '#18181b', // Carbón oscuro premium
-                        '--color-purple-mid': '#b45309',  // Ámbar dorado vintage
-                        '--color-purple-light': '#d97706', // Ámbar cálido
-                        '--color-purple-soft': '#fef3c7', // Crema dorado suave
-                        '--color-purple-dark': '#09090b', // Negro azabache
-                        '--color-bg-page': '#fcfbfa',     // Fondo crema sutil
+                        '--color-header-bg': '#09090b',
+                        '--color-header-border': '#27272a',
+                        '--color-nav-bg': '#18181b',
+                        '--color-nav-text': '#fef3c7',
+                        '--color-nav-border': '#3f3f46',
+                        '--color-nav-hover': '#b45309',
+                        '--color-btn-gradient': 'linear-gradient(135deg, #d97706, #b45309)',
+                        '--color-btn-text': '#ffffff',
+                        '--color-btn-shadow': 'rgba(217, 119, 6, 0.4)',
+                        '--color-purple-deep': '#18181b',
+                        '--color-purple-mid': '#b45309',
+                        '--color-purple-light': '#d97706',
+                        '--color-purple-soft': '#fef3c7',
+                        '--color-purple-dark': '#09090b',
+                        '--color-bg-page': '#fcfbfa',
                         '--color-border-light': '#e4e4e7',
                         '--color-text-dark': '#18181b',
                         badge: '💈 Barbershop & Estilo Masculino',
                         icon: 'scissors'
                     },
                     emerald: {
-                        '--color-purple-deep': '#1b4332',
-                        '--color-purple-mid': '#2d6a4f',
-                        '--color-purple-light': '#52b788',
-                        '--color-purple-soft': '#d8f3dc',
-                        '--color-purple-dark': '#081c15',
-                        '--color-bg-page': '#f4f9f5',
-                        '--color-border-light': '#d1e7dd',
-                        '--color-text-dark': '#1b4332',
+                        '--color-header-bg': '#064e3b',
+                        '--color-header-border': '#047857',
+                        '--color-nav-bg': '#065f46',
+                        '--color-nav-text': '#d1fae5',
+                        '--color-nav-border': '#059669',
+                        '--color-nav-hover': '#047857',
+                        '--color-btn-gradient': 'linear-gradient(135deg, #059669, #047857)',
+                        '--color-btn-text': '#ffffff',
+                        '--color-btn-shadow': 'rgba(5, 150, 105, 0.4)',
+                        '--color-purple-deep': '#064e3b',
+                        '--color-purple-mid': '#059669',
+                        '--color-purple-light': '#10b981',
+                        '--color-purple-soft': '#d1fae5',
+                        '--color-purple-dark': '#022c22',
+                        '--color-bg-page': '#f0fdf4',
+                        '--color-border-light': '#a7f3d0',
+                        '--color-text-dark': '#064e3b',
                         badge: '🌿 Eco Spa & Bienestar Natural',
                         icon: 'leaf'
                     },
                     rose: {
-                        '--color-purple-deep': '#831843',
-                        '--color-purple-mid': '#be185d',
-                        '--color-purple-light': '#f472b6',
-                        '--color-purple-soft': '#fdf2f8',
-                        '--color-purple-dark': '#500724',
-                        '--color-bg-page': '#fff5f8',
-                        '--color-border-light': '#fce7f3',
-                        '--color-text-dark': '#371220',
+                        '--color-header-bg': '#881337',
+                        '--color-header-border': '#be123c',
+                        '--color-nav-bg': '#9f1239',
+                        '--color-nav-text': '#ffe4e6',
+                        '--color-nav-border': '#e11d48',
+                        '--color-nav-hover': '#be123c',
+                        '--color-btn-gradient': 'linear-gradient(135deg, #e11d48, #be123c)',
+                        '--color-btn-text': '#ffffff',
+                        '--color-btn-shadow': 'rgba(225, 29, 72, 0.4)',
+                        '--color-purple-deep': '#881337',
+                        '--color-purple-mid': '#e11d48',
+                        '--color-purple-light': '#fb7185',
+                        '--color-purple-soft': '#ffe4e6',
+                        '--color-purple-dark': '#4c0519',
+                        '--color-bg-page': '#fff1f2',
+                        '--color-border-light': '#fecdd3',
+                        '--color-text-dark': '#881337',
                         badge: '🌸 Beauty Studio & Uñas',
                         icon: 'heart'
                     },
                     ocean: {
+                        '--color-header-bg': '#0f172a',
+                        '--color-header-border': '#0369a1',
+                        '--color-nav-bg': '#1e293b',
+                        '--color-nav-text': '#e0f2fe',
+                        '--color-nav-border': '#0284c7',
+                        '--color-nav-hover': '#0369a1',
+                        '--color-btn-gradient': 'linear-gradient(135deg, #0284c7, #0369a1)',
+                        '--color-btn-text': '#ffffff',
+                        '--color-btn-shadow': 'rgba(2, 132, 199, 0.4)',
                         '--color-purple-deep': '#0f172a',
                         '--color-purple-mid': '#0284c7',
                         '--color-purple-light': '#38bdf8',
                         '--color-purple-soft': '#e0f2fe',
                         '--color-purple-dark': '#020617',
                         '--color-bg-page': '#f8fafc',
-                        '--color-border-light': '#e2e8f0',
+                        '--color-border-light': '#bae6fd',
                         '--color-text-dark': '#0f172a',
                         badge: '💎 Clínica Estética & Dermatología',
                         icon: 'shield'
                     }
                 };
 
-                // Aplicar paleta CSS y atributo data-theme
-                const tema = datosEmpresaGlobal.temaColor || (slug.includes('barber') ? 'barber' : 'purple');
-                document.body.setAttribute('data-theme', tema);
-                document.documentElement.setAttribute('data-theme', tema);
-                
-                const paleta = PALETTES[tema] || PALETTES.purple;
-                for (const [prop, val] of Object.entries(paleta)) {
-                    if (prop.startsWith('--')) {
-                        document.documentElement.style.setProperty(prop, val);
-                    }
-                }
+                window.PALETTES_GLOBAL = PALETTES;
 
-                // Actualizar badge de categoría
-                const catBadge = document.getElementById('empresa-categoria-badge');
-                if (catBadge) {
-                    catBadge.textContent = paleta.badge;
-                }
+                window.aplicarPlantillaPublica = function(nuevoTema) {
+                    const paleta = PALETTES[nuevoTema] || PALETTES.purple;
+                    document.body.setAttribute('data-theme', nuevoTema);
+                    document.documentElement.setAttribute('data-theme', nuevoTema);
+                    
+                    for (const [prop, val] of Object.entries(paleta)) {
+                        if (prop.startsWith('--')) {
+                            document.documentElement.style.setProperty(prop, val);
+                            document.body.style.setProperty(prop, val);
+                        }
+                    }
+
+                    const catBadge = document.getElementById('empresa-categoria-badge');
+                    if (catBadge) {
+                        catBadge.textContent = paleta.badge;
+                    }
+                    const heroIcono = document.getElementById('hero-icono');
+                    if (heroIcono) {
+                        heroIcono.setAttribute('data-lucide', paleta.icon || 'sparkles');
+                    }
+
+                    // Actualizar estilos activos en el switcher flotante de demo
+                    document.querySelectorAll('.btn-plantilla-pill').forEach(btn => {
+                        const bTema = btn.getAttribute('data-tema');
+                        if (bTema === nuevoTema) {
+                            btn.classList.add('ring-2', 'ring-white', 'scale-105', 'font-bold');
+                        } else {
+                            btn.classList.remove('ring-2', 'ring-white', 'scale-105', 'font-bold');
+                        }
+                    });
+
+                    if (window.lucide) {
+                        window.lucide.createIcons();
+                    }
+                };
+
+                // Aplicar paleta inicial configurada
+                const tema = datosEmpresaGlobal.temaColor || (slug.includes('barber') ? 'barber' : 'purple');
+                window.aplicarPlantillaPublica(tema);
 
                 // Actualizar título de la pestaña
                 document.title = `${nombreSpa} — Reservas en línea`;
@@ -433,11 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const heroTituloSpan = document.getElementById('hero-titulo-span');
                 if (heroTituloSpan) {
                     heroTituloSpan.textContent = datosEmpresaGlobal.heroTitulo || (tema === 'barber' ? `${nombreSpa} — Tu Estilo, Tu Actitud` : 'Bienvenido al Bienestar');
-                }
-
-                const heroIcono = document.getElementById('hero-icono');
-                if (heroIcono) {
-                    heroIcono.setAttribute('data-lucide', paleta.icon || 'sparkles');
                 }
 
                 const bienvenidaDesc = document.getElementById('bienvenida-desc');

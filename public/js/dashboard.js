@@ -283,34 +283,64 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
     const DASH_PALETTES = {
         purple: {
-            '--color-purple-deep': '#6a1b9a',
-            '--color-purple-mid': '#8e24aa',
+            nombre: 'Spa Zen',
+            heroSugerido: 'Bienvenido al Bienestar',
+            badge: '✨ Spa & Wellness Zen',
+            '--color-purple-deep': '#3b0764',
+            '--color-purple-mid': '#7c3aed',
             '--color-purple-light': '#ab47bc',
-            '--color-purple-soft': '#f3e5f5'
+            '--color-purple-soft': '#f3e5f5',
+            '--color-header-bg': '#3b0764',
+            '--color-btn-gradient': 'linear-gradient(135deg, #7c3aed, #5b21b6)',
+            '--color-btn-shadow': 'rgba(124, 58, 237, 0.35)'
         },
         barber: {
+            nombre: 'Barbería Vintage',
+            heroSugerido: 'Tu Estilo, Tu Actitud',
+            badge: '💈 Barbershop & Estilo Masculino',
             '--color-purple-deep': '#18181b',
             '--color-purple-mid': '#b45309',
             '--color-purple-light': '#d97706',
-            '--color-purple-soft': '#fef3c7'
+            '--color-purple-soft': '#fef3c7',
+            '--color-header-bg': '#09090b',
+            '--color-btn-gradient': 'linear-gradient(135deg, #d97706, #b45309)',
+            '--color-btn-shadow': 'rgba(217, 119, 6, 0.4)'
         },
         emerald: {
-            '--color-purple-deep': '#1b4332',
-            '--color-purple-mid': '#2d6a4f',
-            '--color-purple-light': '#52b788',
-            '--color-purple-soft': '#d8f3dc'
+            nombre: 'Eco Botánico',
+            heroSugerido: 'Conexión & Bienestar Natural',
+            badge: '🌿 Eco Spa & Bienestar Natural',
+            '--color-purple-deep': '#064e3b',
+            '--color-purple-mid': '#059669',
+            '--color-purple-light': '#10b981',
+            '--color-purple-soft': '#d1fae5',
+            '--color-header-bg': '#064e3b',
+            '--color-btn-gradient': 'linear-gradient(135deg, #059669, #047857)',
+            '--color-btn-shadow': 'rgba(5, 150, 105, 0.4)'
         },
         rose: {
-            '--color-purple-deep': '#831843',
-            '--color-purple-mid': '#be185d',
-            '--color-purple-light': '#f472b6',
-            '--color-purple-soft': '#fdf2f8'
+            nombre: 'Beauty & Glow',
+            heroSugerido: 'Brilla con Tu Propia Luz',
+            badge: '🌸 Beauty Studio & Uñas',
+            '--color-purple-deep': '#881337',
+            '--color-purple-mid': '#e11d48',
+            '--color-purple-light': '#fb7185',
+            '--color-purple-soft': '#ffe4e6',
+            '--color-header-bg': '#881337',
+            '--color-btn-gradient': 'linear-gradient(135deg, #e11d48, #be123c)',
+            '--color-btn-shadow': 'rgba(225, 29, 72, 0.4)'
         },
         ocean: {
+            nombre: 'Clínica Derma',
+            heroSugerido: 'Cuidado Médico & Estética Avanzada',
+            badge: '💎 Clínica Estética & Dermatología',
             '--color-purple-deep': '#0f172a',
             '--color-purple-mid': '#0284c7',
             '--color-purple-light': '#38bdf8',
-            '--color-purple-soft': '#e0f2fe'
+            '--color-purple-soft': '#e0f2fe',
+            '--color-header-bg': '#0f172a',
+            '--color-btn-gradient': 'linear-gradient(135deg, #0284c7, #0369a1)',
+            '--color-btn-shadow': 'rgba(2, 132, 199, 0.4)'
         }
     };
 
@@ -323,7 +353,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const paleta = DASH_PALETTES[tema] || DASH_PALETTES.purple;
         for (const [prop, val] of Object.entries(paleta)) {
-            document.documentElement.style.setProperty(prop, val);
+            if (prop.startsWith('--')) {
+                document.documentElement.style.setProperty(prop, val);
+                document.body.style.setProperty(prop, val);
+            }
+        }
+
+        // Actualizar vista previa interactiva en tiempo real en el dashboard
+        const previewBadge = document.getElementById('preview-plantilla-nombre');
+        if (previewBadge) previewBadge.textContent = paleta.nombre || tema;
+
+        const miniHeader = document.getElementById('preview-mini-header');
+        if (miniHeader) miniHeader.style.backgroundColor = paleta['--color-header-bg'] || '#3b0764';
+
+        const miniBadge = document.getElementById('preview-mini-badge');
+        if (miniBadge) miniBadge.textContent = paleta.badge || '';
+
+        const miniHero = document.getElementById('preview-mini-hero');
+        const customHeroVal = document.getElementById('custom-hero-titulo')?.value;
+        if (miniHero) miniHero.textContent = customHeroVal || paleta.heroSugerido;
+
+        const miniBtn = document.getElementById('preview-mini-btn');
+        if (miniBtn) {
+            miniBtn.style.background = paleta['--color-btn-gradient'];
+            miniBtn.style.boxShadow = `0 4px 14px ${paleta['--color-btn-shadow']}`;
         }
 
         document.querySelectorAll('.card-tema-option').forEach(card => {
@@ -354,6 +407,18 @@ document.addEventListener('DOMContentLoaded', () => {
             marcarTemaActivo(tema);
         });
     });
+
+    // Escuchar cambios en el título del hero para actualizar la vista previa en vivo
+    const inputHeroPreview = document.getElementById('custom-hero-titulo');
+    if (inputHeroPreview) {
+        inputHeroPreview.addEventListener('input', (e) => {
+            const miniHero = document.getElementById('preview-mini-hero');
+            if (miniHero) {
+                const tema = document.getElementById('custom-tema-selected')?.value || 'purple';
+                miniHero.textContent = e.target.value.trim() || DASH_PALETTES[tema]?.heroSugerido || 'Bienvenido al Bienestar';
+            }
+        });
+    }
 
     async function cargarDatosEmpresaDashboard() {
         try {
