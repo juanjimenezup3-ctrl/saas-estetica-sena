@@ -319,19 +319,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const galeriaGrid = document.getElementById('galeria-grid');
         if (!galeriaGrid) return;
 
+        const slug = getTenantSlug();
+        const esBarber = slug.includes('barber');
+        const galeriaTituloTexto = document.getElementById('galeria-titulo-texto');
+        const galeriaIcono = document.getElementById('galeria-icono');
+        if (galeriaTituloTexto) {
+            galeriaTituloTexto.textContent = esBarber ? 'Galería de Estilos & Barbería' : 'Galería de Resultados';
+        }
+        if (galeriaIcono) {
+            galeriaIcono.setAttribute('data-lucide', esBarber ? 'scissors' : 'image');
+        }
+
         try {
             const res = await fetch('/api/galeria', {
-                headers: { 'x-tenant-slug': getTenantSlug() }
+                headers: { 'x-tenant-slug': slug }
             });
             const data = await res.json();
 
             if (res.ok && data.ok && Array.isArray(data.datos) && data.datos.length > 0) {
                 galeriaGrid.innerHTML = '';
+                const fallbackImg = esBarber 
+                    ? 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80'
+                    : '/images/masaje-relajante.jpg';
                 data.datos.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'relative rounded-2xl overflow-hidden group shadow-sm border border-purple-100/60 hover:scale-[1.02] hover:shadow-md transition-all';
                     card.innerHTML = `
-                        <img src="${item.imagen_url}" alt="${item.titulo}" class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.src='/images/masaje-relajante.jpg'">
+                        <img src="${item.imagen_url}" alt="${item.titulo}" class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.src='${fallbackImg}'">
                         <div class="absolute inset-0 bg-gradient-to-t from-purple-950/85 via-transparent to-transparent flex items-end p-4">
                             <div>
                                 <span class="text-white font-semibold text-sm block">${item.titulo}</span>
@@ -347,6 +361,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p>No hay fotos disponibles en la galería por el momento.</p>
                     </div>
                 `;
+            }
+            if (window.lucide) {
+                window.lucide.createIcons();
             }
         } catch (err) {
             console.error('Error al cargar galería:', err);

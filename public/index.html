@@ -162,54 +162,15 @@
         <section id="galeria" class="scroll-mt-24 space-y-6">
             <h2
                 class="text-2xl md:text-3xl font-serif text-purple-deep flex items-center gap-2.5 border-b border-purple-100 pb-3">
-                <i data-lucide="image" class="w-6 h-6 text-purple-light"></i>
-                Galería de Resultados
+                <i data-lucide="image" id="galeria-icono" class="w-6 h-6 text-purple-light"></i>
+                <span id="galeria-titulo-texto">Galería de Resultados</span>
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div
-                    class="relative rounded-2xl overflow-hidden group shadow-sm border border-purple-100/60 hover:scale-[1.02] hover:shadow-md transition-all">
-                    <img id="galeria-img-1" src="/images/masaje-relajante.jpg" alt="Servicio 1"
-                        class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-purple-950/80 via-transparent to-transparent flex items-end p-4">
-                        <div>
-                            <span id="galeria-title-1" class="text-white font-semibold text-sm block">Masajes
-                                Relajantes</span>
-                            <span id="galeria-sub-1" class="text-purple-200 text-xs">Alivio profundo de tensiones</span>
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="relative rounded-2xl overflow-hidden group shadow-sm border border-purple-100/60 hover:scale-[1.02] hover:shadow-md transition-all">
-                    <img id="galeria-img-2" src="/images/limpieza-facial.jpg" alt="Servicio 2"
-                        class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-purple-950/80 via-transparent to-transparent flex items-end p-4">
-                        <div>
-                            <span id="galeria-title-2" class="text-white font-semibold text-sm block">Limpieza Facial
-                                Profunda</span>
-                            <span id="galeria-sub-2" class="text-purple-200 text-xs">Hidratación y cuidado de
-                                poros</span>
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="relative rounded-2xl overflow-hidden group shadow-sm border border-purple-100/60 hover:scale-[1.02] hover:shadow-md transition-all">
-                    <img id="galeria-img-3" src="/images/manicura.jpg" alt="Servicio 3"
-                        class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-t from-purple-950/80 via-transparent to-transparent flex items-end p-4">
-                        <div>
-                            <span id="galeria-title-3" class="text-white font-semibold text-sm block">Diseño de
-                                Uñas</span>
-                            <span id="galeria-sub-3" class="text-purple-200 text-xs">Semi-permanente, acrílicas y
-                                más</span>
-                        </div>
-                    </div>
+            <div id="galeria-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Se cargan dinámicamente desde /api/galeria según el tenant activo -->
+                <div class="col-span-full flex flex-col items-center justify-center gap-3 py-10 text-text-muted">
+                    <div class="w-8 h-8 border-4 border-purple-100 border-t-purple-mid rounded-full animate-spin-custom"></div>
+                    <span class="text-xs">Cargando fotos de la galería...</span>
                 </div>
             </div>
         </section>

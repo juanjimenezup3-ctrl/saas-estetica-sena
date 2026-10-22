@@ -431,6 +431,39 @@ async function seedCitasSemanaActual(db, empresaId, def) {
     }
 }
 
+const FOTOS_GALERIA_DEMO = {
+    'samambaia': [
+        { titulo: 'Masajes Relajantes', subtitulo: 'Alivio profundo de tensiones y aromaterapia', url: '/images/masaje-relajante.jpg' },
+        { titulo: 'Limpieza Facial Profunda', subtitulo: 'Hidratación intensiva y rejuvenecimiento celular', url: '/images/limpieza-facial.jpg' },
+        { titulo: 'Diseño de Uñas & Manicura', subtitulo: 'Semipermanente, acrílicas y nail art exclusivo', url: '/images/manicura.jpg' }
+    ],
+    'demo-barberia': [
+        { titulo: 'Corte Fade & Degradado Pro', subtitulo: 'Degradado limpio a máquina y tijera con navaja', url: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80' },
+        { titulo: 'Perfilado de Barba Ritual', subtitulo: 'Delineado a navaja tradicional con toalla caliente', url: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=800&q=80' },
+        { titulo: 'Estilismo & Textura Matte', subtitulo: 'Peinado moderno con ceras y pomadas premium', url: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=800&q=80' },
+        { titulo: 'Experiencia Lounge VIP', subtitulo: 'Ambiente vintage y atención al detalle para el caballero', url: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80' }
+    ],
+    'demo-spa-zen': [
+        { titulo: 'Masaje con Piedras Calientes', subtitulo: 'Termoterapia volcánica para armonía corporal profunda', url: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=80' },
+        { titulo: 'Aromaterapia & Cuencos Tibetanos', subtitulo: 'Esencias botánicas puras para equilibrar mente y espíritu', url: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?auto=format&fit=crop&w=800&q=80' },
+        { titulo: 'Facial Botánico Orgánico', subtitulo: 'Hidratación dérmica profunda con mascarillas de plantas', url: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80' }
+    ]
+};
+
+async function seedGaleriaDemo(db, empresaId, slug) {
+    const count = await db.get('SELECT COUNT(*) as c FROM galeria_empresa WHERE empresa_id = ?', [empresaId]);
+    if (!count || count.c === 0) {
+        const fotos = FOTOS_GALERIA_DEMO[slug] || [];
+        let orden = 1;
+        for (const f of fotos) {
+            await db.run(`
+                INSERT INTO galeria_empresa (empresa_id, titulo, subtitulo, imagen_url, orden)
+                VALUES (?, ?, ?, ?, ?)
+            `, [empresaId, f.titulo, f.subtitulo, f.url, orden++]);
+        }
+    }
+}
+
 // Seeder principal: 3 centros demo (Samambaia Spa, Demo Spa Zen, Demo Barbería).
 // Es idempotente: se puede ejecutar en cada arranque (Render) sin duplicar datos.
 async function seedInitialTenant() {
@@ -438,6 +471,7 @@ async function seedInitialTenant() {
     for (const def of TENANTS_DEMO) {
         const empresaId = await crearTenantDemo(db, def);
         await seedCitasSemanaActual(db, empresaId, def);
+        await seedGaleriaDemo(db, empresaId, def.slug);
     }
     console.log('✅ Seeder completado: Samambaia Spa, Demo Spa Zen y Demo Barbería listos con citas de la semana actual.');
     console.log('   Evaluador SENA:  admin@demoestetica.com | 123456');
