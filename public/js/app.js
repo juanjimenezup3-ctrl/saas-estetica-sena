@@ -13,15 +13,22 @@
  * FECHA: Mayo 2026
  * =====================================================================
  */
-
 document.addEventListener('DOMContentLoaded', () => {
+    // Estado global reactivo del inquilino (tenant) actual
+    let currentTenantSlug = null;
+
+    function getTenantSlug() {
+        if (currentTenantSlug) return currentTenantSlug;
+        const pathParts = window.location.pathname.split('/').filter(p => p && p !== 'index.html');
+        return pathParts[0] || 'samambaia';
+    }
+
     // Interceptor global de Fetch para inyectar x-tenant-slug automáticamente
     (function () {
         const originalFetch = window.fetch;
         window.fetch = async function (url, options = {}) {
             if (typeof url === 'string' && url.startsWith('/api/')) {
-                const pathParts = window.location.pathname.split('/').filter(p => p);
-                const slug = pathParts[0] || 'samambaia';
+                const slug = getTenantSlug();
                 if (options.headers instanceof Headers) {
                     options.headers.set('x-tenant-slug', slug);
                 } else {
@@ -98,10 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return s.precio;
     }
 
-    function getTenantSlug() {
-        const pathParts = window.location.pathname.split('/').filter(p => p);
-        return pathParts[0] || 'samambaia';
-    }
 
     // =================================================================
     // 2. CARGA DEL CATÁLOGO DE SERVICIOS
@@ -152,8 +155,23 @@ document.addEventListener('DOMContentLoaded', () => {
         serviciosGrid.innerHTML = '';
         serviciosGrid.className = 'space-y-10'; // Cambiar a flujo vertical de secciones
 
-        // Agrupar por categoría
+        // Mapeo detallado de categorías con soporte multinegocio (Spa, Barbería, Estética)
         const categoriasMap = {
+            'Cortes': {
+                titulo: 'Cortes & Estilismo Masculino ✂️',
+                descripcion: 'Degradados, estilos clásicos, corte a tijera y peinados de vanguardia.',
+                servicios: []
+            },
+            'Barba': {
+                titulo: 'Perfilado de Barba & Barber Ritual 🧔',
+                descripcion: 'Delineado a navaja, tratamiento con vapor de toalla caliente y aceites esenciales.',
+                servicios: []
+            },
+            'Combos': {
+                titulo: 'Combos & Experiencia Completa VIP 💈',
+                descripcion: 'Paquetes completos para un cuidado personal integral con máxima distinción.',
+                servicios: []
+            },
             'Uñas': {
                 titulo: 'Cuidado de Uñas & Manicura 💅',
                 descripcion: 'Diseños exclusivos, extensiones y cuidado profesional para tus manos.',
@@ -168,15 +186,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 titulo: 'Experiencias de Masajes & Relajación 🧘',
                 descripcion: 'Libera tensiones, alivia el estrés y reconéctate con tu bienestar corporal.',
                 servicios: []
+            },
+            'Terapias': {
+                titulo: 'Terapias Holísticas & Masajes Zen 🌿',
+                descripcion: 'Equilibrio de energía y relajación profunda con piedras calientes y aromas.',
+                servicios: []
+            },
+            'Faciales': {
+                titulo: 'Cuidado Facial & Hidratación Profunda 💆',
+                descripcion: 'Tratamientos dérmicos con ingredientes botánicos para una piel luminosa.',
+                servicios: []
             }
         };
 
+        const esBarberia = getTenantSlug().includes('barber');
         servicios.forEach(s => {
-            const cat = s.categoria || 'Otros';
+            const cat = s.categoria || (esBarberia ? 'Cortes' : 'Otros');
             if (!categoriasMap[cat]) {
                 categoriasMap[cat] = {
-                    titulo: `${cat} 🌸`,
-                    descripcion: 'Servicios especializados del spa.',
+                    titulo: esBarberia ? `${cat} 💈` : `${cat} 🌸`,
+                    descripcion: esBarberia ? 'Servicios especializados de barbería y cuidado masculino.' : 'Servicios especializados de estética y bienestar.',
                     servicios: []
                 };
             }
@@ -449,6 +478,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.PALETTES_GLOBAL = PALETTES;
 
                 window.aplicarPlantillaPublica = function(nuevoTema) {
+                    // Si se activa barber pero estamos en otro tenant, cambiar automáticamente al tenant de barbería
+                    const slugActual = getTenantSlug();
+                    if (nuevoTema === 'barber' && slugActual !== 'demo-barberia') {
+                        window.conmutarTenantPublico('demo-barberia', 'barber');
+                        return;
+                    }
+                    if (nuevoTema === 'emerald' && slugActual !== 'demo-spa-zen') {
+                        window.conmutarTenantPublico('demo-spa-zen', 'emerald');
+                        return;
+                    }
+                    if (nuevoTema === 'purple' && slugActual !== 'samambaia') {
+                        window.conmutarTenantPublico('samambaia', 'purple');
+                        return;
+                    }
+                    if ((nuevoTema === 'rose' || nuevoTema === 'ocean') && slugActual === 'demo-barberia') {
+                        window.conmutarTenantPublico('samambaia', nuevoTema);
+                        return;
+                    }
+
                     const paleta = PALETTES[nuevoTema] || PALETTES.purple;
                     document.body.setAttribute('data-theme', nuevoTema);
                     document.documentElement.setAttribute('data-theme', nuevoTema);
@@ -472,7 +520,86 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Actualizar estilos activos en el switcher flotante de demo
                     document.querySelectorAll('.btn-plantilla-pill').forEach(btn => {
                         const bTema = btn.getAttribute('data-tema');
-                        if (bTema === nuevoTema) {
+                        const bSlug = btn.getAttribute('data-slug');
+                        const matchesSlug = bSlug && bSlug === getTenantSlug();
+                        const matchesTheme = !bSlug && bTema === nuevoTema;
+                        if (matchesSlug || matchesTheme) {
+                            btn.classList.add('ring-2', 'ring-white', 'scale-105', 'font-bold');
+                        } else {
+                            btn.classList.remove('ring-2', 'ring-white', 'scale-105', 'font-bold');
+                        }
+                    });
+
+                    if (window.lucide) {
+                        window.lucide.createIcons();
+                    }
+                };
+
+                // Función global para conmutar tenants en vivo sin recarga
+                window.conmutarTenantPublico = async function(slug, temaOpcional) {
+                    if (!slug) return;
+                    currentTenantSlug = slug;
+
+                    // Actualizar URL sin forzar recarga
+                    if (window.history && window.history.pushState) {
+                        window.history.pushState({ tenant: slug }, '', `/${slug}/`);
+                    }
+
+                    // Restablecer formulario de agendamiento si estaba en paso 2
+                    if (step2 && !step2.classList.contains('hidden')) {
+                        step2.classList.add('hidden');
+                        step1.classList.remove('hidden');
+                    }
+                    if (formServicioId) formServicioId.value = '';
+                    if (formFecha) formFecha.value = '';
+                    if (formHora) formHora.value = '';
+                    if (servicioInfo) servicioInfo.classList.add('hidden');
+                    servicioSeleccionado = null;
+
+                    // Desmarcar slots seleccionados en el calendario si los había
+                    document.querySelectorAll('.time-slot-btn.selected').forEach(btn => {
+                        btn.classList.remove('selected', 'bg-purple-deep', 'text-white');
+                    });
+
+                    // Actualizar enlaces de administración dinámicamente
+                    const navAdmin = document.getElementById('nav-link-admin');
+                    if (navAdmin) navAdmin.href = `/${slug}/dashboard`;
+                    const btnOpenDash = document.getElementById('btn-open-dashboard');
+                    if (btnOpenDash) btnOpenDash.href = `/${slug}/dashboard`;
+
+                    // Feedback visual en la rejilla de servicios
+                    if (serviciosGrid) {
+                        serviciosGrid.innerHTML = `
+                            <div class="col-span-full flex flex-col items-center justify-center gap-3 py-12 text-text-muted">
+                                <div class="w-10 h-10 border-4 border-purple-100 border-t-purple-mid rounded-full animate-spin-custom"></div>
+                                <span class="text-sm font-semibold">Cargando catálogo de ${slug}...</span>
+                            </div>
+                        `;
+                    }
+
+                    try {
+                        await cargarDatosEmpresa();
+                        await cargarCatalogoServicios();
+                        if (temaOpcional) {
+                            const paleta = PALETTES[temaOpcional] || PALETTES.purple;
+                            document.body.setAttribute('data-theme', temaOpcional);
+                            document.documentElement.setAttribute('data-theme', temaOpcional);
+                            for (const [prop, val] of Object.entries(paleta)) {
+                                if (prop.startsWith('--')) {
+                                    document.documentElement.style.setProperty(prop, val);
+                                    document.body.style.setProperty(prop, val);
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error al conmutar tenant:', e);
+                    }
+
+                    // Resaltar botón activo en el switcher flotante
+                    document.querySelectorAll('.btn-plantilla-pill').forEach(btn => {
+                        const bSlug = btn.getAttribute('data-slug');
+                        const bTema = btn.getAttribute('data-tema');
+                        if (bSlug === slug || (!bSlug && bTema === temaOpcional)) {
                             btn.classList.add('ring-2', 'ring-white', 'scale-105', 'font-bold');
                         } else {
                             btn.classList.remove('ring-2', 'ring-white', 'scale-105', 'font-bold');
@@ -577,23 +704,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnWa.href = `https://wa.me/${numWa}?text=${msgWa}`;
                 }
 
-                // Logos: Samambaia usa logo real, otros usan inicial del negocio
+                // Logos: Samambaia usa logo real, otros usan inicial del negocio o icono de barbería
                 const headerLogoImg = document.getElementById('header-logo-img');
                 const headerLogoGeneric = document.getElementById('header-logo-generic');
                 const footerLogoImg = document.getElementById('footer-logo-img');
                 const footerLogoGeneric = document.getElementById('footer-logo-generic');
 
                 if (slug !== 'samambaia') {
-                    // Mostrar logo genérico con inicial
+                    // Mostrar logo genérico con inicial o icono de barbería
                     if (headerLogoImg) headerLogoImg.classList.add('hidden');
                     if (headerLogoGeneric) {
                         headerLogoGeneric.classList.remove('hidden');
-                        headerLogoGeneric.innerHTML = `<span class="text-base font-bold text-white uppercase">${nombreSpa.charAt(0)}</span>`;
+                        if (slug.includes('barber') || datosEmpresaGlobal.temaColor === 'barber') {
+                            headerLogoGeneric.innerHTML = `<span class="text-xl">💈</span>`;
+                        } else {
+                            headerLogoGeneric.innerHTML = `<span class="text-base font-bold text-white uppercase">${nombreSpa.charAt(0)}</span>`;
+                        }
                     }
                     if (footerLogoImg) footerLogoImg.classList.add('hidden');
                     if (footerLogoGeneric) {
                         footerLogoGeneric.classList.remove('hidden');
-                        footerLogoGeneric.innerHTML = `<span class="text-xl font-bold text-white uppercase">${nombreSpa.charAt(0)}</span>`;
+                        if (slug.includes('barber') || datosEmpresaGlobal.temaColor === 'barber') {
+                            footerLogoGeneric.innerHTML = `<span class="text-2xl">💈</span>`;
+                        } else {
+                            footerLogoGeneric.innerHTML = `<span class="text-xl font-bold text-white uppercase">${nombreSpa.charAt(0)}</span>`;
+                        }
                     }
                 } else {
                     if (headerLogoImg) headerLogoImg.classList.remove('hidden');
@@ -602,10 +737,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (footerLogoGeneric) footerLogoGeneric.classList.add('hidden');
                 }
 
-                // Actualizar enlace del Dashboard dinámicamente
+                // Actualizar enlaces del Dashboard dinámicamente
                 const btnOpenDashboard = document.getElementById('btn-open-dashboard');
                 if (btnOpenDashboard) {
                     btnOpenDashboard.href = `/${slug}/dashboard`;
+                }
+                const navLinkAdmin = document.getElementById('nav-link-admin');
+                if (navLinkAdmin) {
+                    navLinkAdmin.href = `/${slug}/dashboard`;
                 }
 
                 // Actualizar texto del botón autofill para el evaluador SENA (solo en Samambaia)

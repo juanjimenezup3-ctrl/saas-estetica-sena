@@ -71,8 +71,8 @@
                 <a href="#agendar"
                     class="px-3.5 py-1.5 rounded-full text-xs font-bold theme-btn-primary transition-all">✨
                     Reservar</a>
-                <a href="#admin"
-                    class="px-3 py-1.5 rounded-full text-xs font-semibold theme-nav-pill transition-all">Admin</a>
+                <a id="nav-link-admin" href="/dashboard"
+                    class="px-3 py-1.5 rounded-full text-xs font-semibold theme-nav-pill transition-all flex items-center gap-1">🔒 Admin</a>
             </nav>
         </div>
     </header>
@@ -649,25 +649,25 @@
         </svg>
     </a>
 
-    <!-- Barra Flotante de Demostración Rápida de Plantillas (SENA Demo) -->
+    <!-- Barra Flotante de Demostración Rápida de Plantillas y Negocios (SENA Demo) -->
     <div id="demo-template-switcher" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/90 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-full shadow-2xl flex items-center gap-1.5 transition-all text-xs font-semibold text-white max-w-[95vw] overflow-x-auto scrollbar-none">
         <span class="text-[0.65rem] text-zinc-400 font-bold uppercase tracking-wider pl-1 hidden md:inline-flex items-center gap-1 flex-shrink-0">
-            <i data-lucide="palette" class="w-3.5 h-3.5 text-purple-400"></i> Plantillas:
+            <i data-lucide="store" class="w-3.5 h-3.5 text-purple-400"></i> Demos:
         </span>
-        <button type="button" onclick="window.aplicarPlantillaPublica('purple')" class="btn-plantilla-pill px-3 py-1 rounded-full bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-500/40 text-[0.7rem] transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer" data-tema="purple">
-            ✨ Spa Zen
+        <button type="button" onclick="window.conmutarTenantPublico('samambaia', 'purple')" class="btn-plantilla-pill px-3 py-1 rounded-full bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-500/40 text-[0.7rem] transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer" data-slug="samambaia" data-tema="purple">
+            🌸 Samambaia Spa
         </button>
-        <button type="button" onclick="window.aplicarPlantillaPublica('barber')" class="btn-plantilla-pill px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-500/40 text-[0.7rem] transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer" data-tema="barber">
-            💈 Barbería
+        <button type="button" onclick="window.conmutarTenantPublico('demo-barberia', 'barber')" class="btn-plantilla-pill px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-500/40 text-[0.7rem] transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer" data-slug="demo-barberia" data-tema="barber">
+            💈 Barbería Real
         </button>
-        <button type="button" onclick="window.aplicarPlantillaPublica('emerald')" class="btn-plantilla-pill px-3 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 border border-emerald-500/40 text-[0.7rem] transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer" data-tema="emerald">
-            🌿 Eco Spa
+        <button type="button" onclick="window.conmutarTenantPublico('demo-spa-zen', 'emerald')" class="btn-plantilla-pill px-3 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 border border-emerald-500/40 text-[0.7rem] transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer" data-slug="demo-spa-zen" data-tema="emerald">
+            🌿 Eco Spa Zen
         </button>
         <button type="button" onclick="window.aplicarPlantillaPublica('rose')" class="btn-plantilla-pill px-3 py-1 rounded-full bg-pink-950/80 hover:bg-pink-900 text-pink-200 border border-pink-500/40 text-[0.7rem] transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer" data-tema="rose">
-            🌸 Beauty
+            💅 Beauty Studio
         </button>
         <button type="button" onclick="window.aplicarPlantillaPublica('ocean')" class="btn-plantilla-pill px-3 py-1 rounded-full bg-sky-950/80 hover:bg-sky-900 text-sky-200 border border-sky-500/40 text-[0.7rem] transition-all active:scale-95 flex items-center gap-1 flex-shrink-0 cursor-pointer" data-tema="ocean">
-            💎 Clínica
+            💎 Clínica Estética
         </button>
     </div>
 
