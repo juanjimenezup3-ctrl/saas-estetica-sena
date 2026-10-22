@@ -1075,7 +1075,8 @@ document.addEventListener('DOMContentLoaded', () => {
             `👤 *Cliente:* ${cita.nombre}\n` +
             `💆 *Servicio:* ${cita.servicio}\n` +
             `📅 *Fecha:* ${formatearFechaLarga(cita.fecha)}\n` +
-            `⏰ *Hora:* ${formatHora(cita.hora)}\n\n` +
+            `⏰ *Hora:* ${formatHora(cita.hora)}\n` +
+            `⏱️ *Duración:* ${cita.duracion} minutos\n\n` +
             `Por favor confirmen mi espacio. ¡Muchas gracias! 💜`;
 
         btnConfirmWhatsapp.href = `https://wa.me/${telClean}?text=${encodeURIComponent(mensajeWhatsApp)}`;

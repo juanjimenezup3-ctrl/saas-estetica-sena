@@ -51,6 +51,32 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     })();
 
+    // Estado global de la empresa activa en el dashboard
+    let nombreEmpresaActual = 'EstéticaSaaS';
+
+    // Conmutador multi-tenant global para la evaluación SENA (CP-08)
+    window.conmutarTenantDemo = async function(email, password = '123456') {
+        try {
+            mostrarToast('🔄 Conmutando a perfil demo...', 'info', 1800);
+            const res = await fetch('/api/saas/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (data.ok && data.token && data.slug) {
+                localStorage.setItem(`admin_token_${data.slug}`, data.token);
+                localStorage.setItem('admin_token', data.token);
+                window.location.href = `/${data.slug}/dashboard`;
+            } else {
+                mostrarToast(data.mensaje || 'Error al autenticar perfil demo.', 'error');
+            }
+        } catch (e) {
+            console.error('Error switching tenant:', e);
+            mostrarToast('Error de conexión al conmutar perfil.', 'error');
+        }
+    };
+
     // Elementos del Modal de Login de Seguridad
     const dashLoginModal = document.getElementById('dashboard-login-modal');
     const dashLoginForm = document.getElementById('dashboard-login-form');
@@ -428,6 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok && data.ok) {
                 const emp = data.datos;
                 const nombre = emp.nombre || 'EstéticaSaaS';
+                nombreEmpresaActual = nombre;
                 document.title = `${nombre} — Panel de Administración`;
                 
                 const headerNombre = document.getElementById('header-nombre-spa');
@@ -435,6 +462,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const userBadge = document.getElementById('admin-user-badge');
                 if (userBadge) userBadge.textContent = `Administrador: ${nombre}`;
+
+                // Resaltar píldora activa en el conmutador de empresas SENA (CP-08)
+                const activePillId = `tenant-pill-${slug}`;
+                ['tenant-pill-samambaia', 'tenant-pill-demo-spa-zen', 'tenant-pill-demo-barberia'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (id === activePillId) {
+                            el.className = 'px-2.5 py-0.5 rounded-full text-[0.65rem] font-bold border transition-all cursor-pointer flex items-center gap-1 bg-white text-purple-950 shadow-sm border-white';
+                        } else {
+                            el.className = 'px-2.5 py-0.5 rounded-full text-[0.65rem] font-semibold border transition-all cursor-pointer flex items-center gap-1 bg-white/10 border-white/20 hover:bg-white/20 text-white';
+                        }
+                    }
+                });
 
                 // Enlace Ver Mi Página en Vivo
                 const btnVerPagina = document.getElementById('btn-ver-mi-pagina');
@@ -1139,7 +1179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const horaFormateada = formatHora(hora);
         const currentUrl = window.location.origin;
         
-        const mensaje = `¡Hola! 🌸 Te contamos que tenemos agenda disponible en *SamambaiaSpa* para el día *${fechaFormateada}* a las *${horaFormateada}*.\n\n` +
+        const mensaje = `¡Hola! 🌸 Te contamos que tenemos agenda disponible en *${nombreEmpresaActual}* para el día *${fechaFormateada}* a las *${horaFormateada}*.\n\n` +
             `Si deseas reservar este espacio, puedes agendar directamente aquí: ${currentUrl}\n\n` +
             `¡Te esperamos con mucho gusto! 💜`;
             
@@ -2056,7 +2096,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const rangoSemana = weekLabel.textContent;
         const currentUrl = window.location.origin;
         
-        const mensaje = `¡Hola! 🌸 Te contamos que ya está abierta nuestra agenda de bienestar en *SamambaiaSpa* para la *${rangoSemana}*.\n\n` +
+        const mensaje = `¡Hola! 🌸 Te contamos que ya está abierta nuestra agenda en *${nombreEmpresaActual}* para la *${rangoSemana}*.\n\n` +
             `Separa tu cita favorita con anticipación haciendo clic aquí: ${currentUrl}\n\n` +
             `¡Te esperamos con mucho cariño! 💜`;
             
@@ -2144,7 +2184,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function enviarRecordatorioWhatsApp(cita) {
         const telefonoLimpio = limpiarTelefonoParaWhatsApp(cita.telefono);
-        const mensaje = `Hola ${cita.cliente}! 🌸 Te recordamos tu cita de bienestar en *SamambaiaSpa*:\n\n` +
+        const mensaje = `Hola ${cita.cliente}! 🌸 Te recordamos tu cita en *${nombreEmpresaActual}*:\n\n` +
             `💆 *Servicio:* ${cita.servicio}\n` +
             `📅 *Fecha:* ${formatearFechaLarga(cita.fecha)}\n` +
             `⏰ *Hora:* ${formatHora(cita.hora)}\n` +
@@ -2183,7 +2223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `👤 Cliente: ${cita.cliente}\n` +
             `📞 Teléfono: ${cita.telefono}\n` +
             `🆔 ID Cita: ${cita.idCita}\n\n` +
-            `*Agendado vía SamambaiaSpa*`
+            `*Agendado vía ${nombreEmpresaActual}*`
         );
         const ubicacion = encodeURIComponent("Calle Jardín Botánico #45, Sector Laurel");
         
@@ -2526,7 +2566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Abrir pasarela de pago para renovar
     btnSubPay.addEventListener('click', () => {
         pasarelaRenovarPlanTitulo.textContent = `Renovación Plan ${planActualSaaS}`;
-        pasarelaRenovarPrecio.textContent = planActualSaaS === 'Pro' ? '$67.100 COP' : '$15.200 COP';
+        pasarelaRenovarPrecio.textContent = planActualSaaS === 'Pro' ? '$85.000 COP' : '$35.000 COP';
         modalPasarelaRenovar.classList.remove('hidden');
     });
 
@@ -2572,7 +2612,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Simular cambio de plan (Upgrade / Downgrade)
     btnSubUpgrade.addEventListener('click', async () => {
         const nuevoPlan = planActualSaaS === 'Pro' ? 'Emprendedor' : 'Pro';
-        if (confirm(`¿Estás segura de cambiar al ${nuevoPlan === 'Pro' ? 'Plan Pro ($67.100 COP)' : 'Plan Emprendedor ($15.200 COP)'}? El cambio se aplicará de forma inmediata.`)) {
+        if (confirm(`¿Estás segura de cambiar al ${nuevoPlan === 'Pro' ? 'Plan Premium Pro ($85.000 COP)' : 'Plan Emprendedor ($35.000 COP)'}? El cambio se aplicará de forma inmediata.`)) {
             try {
                 // Simular webhook de cambio de plan y pago aprobado
                 const res = await fetch('/api/webhooks/payment', {

@@ -226,181 +226,236 @@ async function initDB(db) {
     console.log('✅ Base de datos SQLite y esquemas inicializados correctamente.');
 }
 
-// Función para migrar los datos en memoria de Samambaia a la base de datos (Ejecutar solo 1 vez)
-async function seedInitialTenant() {
-    const db = await connectDB();
-    
-    // Validar si ya existe el tenant Samambaia
-    const existing = await db.get('SELECT id FROM empresas WHERE slug = ?', ['samambaia']);
-    if (existing) {
-        console.log('✅ Tenant Samambaia ya existe en la DB. Saltando seeder.');
-        return;
+// ---------------------------------------------------------------------
+// Utilidades de fecha para citas demo (siempre en la semana ACTUAL)
+// ---------------------------------------------------------------------
+function fechaLocalISO(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/** Retorna { lunes, sabado, hoy } (strings YYYY-MM-DD) de la semana en curso. */
+function rangoSemanaActual() {
+    const hoy = new Date();
+    const lunes = new Date(hoy);
+    lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
+    const sabado = new Date(lunes);
+    sabado.setDate(lunes.getDate() + 5);
+    return { lunes: fechaLocalISO(lunes), sabado: fechaLocalISO(sabado), hoy: fechaLocalISO(hoy), lunesDate: lunes };
+}
+
+const HORARIO_ESTANDAR = [
+    { dia: 0, activo: 0, inicio: '08:00', fin: '19:00' }, // Dom
+    { dia: 1, activo: 1, inicio: '08:00', fin: '19:00' }, // Lun
+    { dia: 2, activo: 1, inicio: '08:00', fin: '19:00' }, // Mar
+    { dia: 3, activo: 1, inicio: '08:00', fin: '19:00' }, // Mie
+    { dia: 4, activo: 1, inicio: '08:00', fin: '19:00' }, // Jue
+    { dia: 5, activo: 1, inicio: '08:00', fin: '19:00' }, // Vie
+    { dia: 6, activo: 1, inicio: '08:00', fin: '15:00' }, // Sab
+];
+
+/**
+ * Definición de los 3 centros demo (aislados por empresa_id / slug).
+ * Citas: `dia` 0=Lunes ... 5=Sábado de la semana actual. Se evita el miércoles
+ * antes de las 12:00 para no interferir con el flujo de pruebas E2E.
+ */
+const TENANTS_DEMO = [
+    {
+        slug: 'samambaia',
+        nombre: 'Samambaia Spa',
+        descripcion: 'Centro de Bienestar y Belleza',
+        telefono: '3210000000',
+        prefijoCitas: 'SAM',
+        extra: {},
+        admins: [
+            { usuario: 'admin', password: 'admin123' },
+            { usuario: 'admin@demoestetica.com', password: '123456' }
+        ],
+        servicios: [
+            { n: 'Uñas Semipermanentes', c: 'Uñas', d: 60, p: 35000, desc: 'Aplicación de esmalte semipermanente de larga duración.' },
+            { n: 'Uñas Acrílicas', c: 'Uñas', d: 90, p: 65000, desc: 'Extensión de uñas con sistema acrílico.' },
+            { n: 'Masaje Relajante', c: 'Relajación', d: 60, p: 80000, desc: 'Masaje corporal completo de relajación profunda.' },
+            { n: 'Masaje Descontracturante', c: 'Relajación', d: 90, p: 100000, desc: 'Masaje terapéutico para liberar tensión muscular.' },
+            { n: 'Tratamiento Facial', c: 'Tratamientos', d: 60, p: 60000, desc: 'Limpieza e hidratación facial profunda.' },
+            { n: 'Cejas y Pestañas', c: 'Tratamientos', d: 45, p: 40000, desc: 'Diseño de cejas y lifting de pestañas.' },
+            { n: 'Drenaje Linfático', c: 'Tratamientos', d: 60, p: 70000, desc: 'Masaje para estimular la circulación linfática.' },
+            { n: 'Paquete Novias', c: 'Especiales', d: 180, p: 250000, desc: 'Masaje, facial, manicure y pedicure.' }
+        ],
+        citas: [
+            { cliente: 'Valentina Gómez', tel: '3105551234', edad: 28, serv: 'Masaje Relajante', dia: 0, hora: '10:00' },
+            { cliente: 'Camila Rodríguez', tel: '3158884321', edad: 32, serv: 'Uñas Semipermanentes', dia: 1, hora: '15:00' },
+            { cliente: 'Daniela Morales', tel: '3209998765', edad: 26, serv: 'Drenaje Linfático', dia: 2, hora: '14:00' },
+            { cliente: 'Sofía Castañeda', tel: '3124449876', edad: 34, serv: 'Tratamiento Facial', dia: 3, hora: '10:00' },
+            { cliente: 'Mariana Silva', tel: '3173336543', edad: 29, serv: 'Uñas Acrílicas', dia: 4, hora: '15:00' },
+            { cliente: 'Laura Ortiz', tel: '3002223344', edad: 31, serv: 'Paquete Novias', dia: 5, hora: '09:00' }
+        ]
+    },
+    {
+        slug: 'demo-spa-zen',
+        nombre: 'Demo Spa Zen',
+        descripcion: 'Spa urbano de relajación y terapias holísticas',
+        telefono: '3101112233',
+        prefijoCitas: 'ZEN',
+        extra: { plan_nombre: 'Emprendedor', tema_color: 'purple', plantilla_tipo: 'wellness' },
+        admins: [{ usuario: 'admin@demospazen.com', password: '123456' }],
+        servicios: [
+            { n: 'Masaje Piedras Calientes', c: 'Relajación', d: 90, p: 120000, desc: 'Terapia con piedras volcánicas para relajación profunda.' },
+            { n: 'Aromaterapia Zen', c: 'Relajación', d: 60, p: 75000, desc: 'Sesión de masaje con aceites esenciales.' },
+            { n: 'Facial Hidratante Premium', c: 'Tratamientos', d: 60, p: 85000, desc: 'Limpieza, exfoliación y mascarilla de hidratación.' },
+            { n: 'Reflexología Podal', c: 'Terapias', d: 45, p: 55000, desc: 'Masaje de puntos reflejos en los pies.' }
+        ],
+        citas: [
+            { cliente: 'Andrea Vargas', tel: '3011230001', edad: 35, serv: 'Masaje Piedras Calientes', dia: 0, hora: '11:00' },
+            { cliente: 'Natalia Ríos', tel: '3011230002', edad: 27, serv: 'Aromaterapia Zen', dia: 1, hora: '16:00' },
+            { cliente: 'Paula Herrera', tel: '3011230003', edad: 30, serv: 'Facial Hidratante Premium', dia: 3, hora: '14:00' },
+            { cliente: 'Juliana Peña', tel: '3011230004', edad: 41, serv: 'Reflexología Podal', dia: 4, hora: '10:00' }
+        ]
+    },
+    {
+        slug: 'demo-barberia',
+        nombre: 'Demo Barbería',
+        descripcion: 'Barbería profesional: cortes, barba y estilo',
+        telefono: '3109998877',
+        prefijoCitas: 'BAR',
+        extra: { plan_nombre: 'Pro', tema_color: 'barber', plantilla_tipo: 'barber' },
+        admins: [{ usuario: 'admin@demobarberia.com', password: '123456' }],
+        servicios: [
+            { n: 'Corte de Cabello & Styling', c: 'Cortes', d: 45, p: 35000, desc: 'Corte personalizado con tijera y máquina, lavado y peinado.' },
+            { n: 'Perfilado de Barba & Toalla Caliente', c: 'Barba', d: 30, p: 28000, desc: 'Delineado a navaja e hidratación con toalla caliente.' },
+            { n: 'Combo Corte + Barba + Mascarilla', c: 'Combos', d: 75, p: 60000, desc: 'Experiencia completa de corte, barba y mascarilla facial.' },
+            { n: 'Corte Clásico Infantil', c: 'Cortes', d: 30, p: 22000, desc: 'Corte para niños con máquina o tijera.' }
+        ],
+        citas: [
+            { cliente: 'Carlos Mejía', tel: '3021230001', edad: 33, serv: 'Corte de Cabello & Styling', dia: 0, hora: '09:00' },
+            { cliente: 'Andrés Duarte', tel: '3021230002', edad: 25, serv: 'Combo Corte + Barba + Mascarilla', dia: 1, hora: '17:00' },
+            { cliente: 'Felipe Torres', tel: '3021230003', edad: 29, serv: 'Perfilado de Barba & Toalla Caliente', dia: 3, hora: '15:00' },
+            { cliente: 'Sebastián Cruz', tel: '3021230004', edad: 22, serv: 'Combo Corte + Barba + Mascarilla', dia: 4, hora: '16:00' },
+            { cliente: 'Mateo León', tel: '3021230005', edad: 10, serv: 'Corte Clásico Infantil', dia: 5, hora: '10:00' }
+        ]
+    }
+];
+
+/** Crea el tenant (si no existe) con su horario, servicios y administradores. */
+async function crearTenantDemo(db, def) {
+    const existente = await db.get('SELECT id FROM empresas WHERE slug = ?', [def.slug]);
+    let empresaId;
+
+    if (!existente) {
+        console.log(`🌱 Creando tenant demo "${def.nombre}" (${def.slug})...`);
+        const fin = new Date();
+        fin.setDate(fin.getDate() + 30);
+        const resEmpresa = await db.run(`
+            INSERT INTO empresas (slug, nombre, descripcion, telefono, plan_nombre, suscripcion_estado, suscripcion_fin, tema_color, plantilla_tipo)
+            VALUES (?, ?, ?, ?, ?, 'Active', ?, ?, ?)
+        `, [
+            def.slug, def.nombre, def.descripcion, def.telefono,
+            def.extra.plan_nombre || 'Pro', fechaLocalISO(fin),
+            def.extra.tema_color || 'purple', def.extra.plantilla_tipo || 'wellness'
+        ]);
+        empresaId = resEmpresa.lastID;
+
+        await db.run('INSERT INTO configuracion_empresa (empresa_id, recordatorios_activos) VALUES (?, 0)', [empresaId]);
+
+        for (const h of HORARIO_ESTANDAR) {
+            await db.run(`
+                INSERT INTO configuracion_horario (empresa_id, dia_semana, activo, inicio, fin)
+                VALUES (?, ?, ?, ?, ?)
+            `, [empresaId, h.dia, h.activo, h.inicio, h.fin]);
+        }
+
+        for (const s of def.servicios) {
+            await db.run(`
+                INSERT INTO servicios (empresa_id, nombre, categoria, duracion, precio, descripcion)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `, [empresaId, s.n, s.c, s.d, s.p, s.desc]);
+        }
+    } else {
+        empresaId = existente.id;
     }
 
-    console.log('🌱 Ejecutando seeder para crear el tenant "Samambaia Spa"...');
-    
-    // 1. Crear Empresa
-    const resEmpresa = await db.run(`
-        INSERT INTO empresas (slug, nombre, descripcion, telefono)
-        VALUES ('samambaia', 'Samambaia Spa', 'Centro de Bienestar y Belleza', '3210000000')
-    `);
-    const empresaId = resEmpresa.lastID;
-
-    // 2. Configuración GCal y Auto
-    await db.run(`
-        INSERT INTO configuracion_empresa (empresa_id, recordatorios_activos)
-        VALUES (?, 0)
-    `, [empresaId]);
-
-    // 3. Horario Estándar
-    const horarios = [
-        { dia: 0, activo: 0, inicio: '08:00', fin: '19:00' }, // Dom
-        { dia: 1, activo: 1, inicio: '08:00', fin: '19:00' }, // Lun
-        { dia: 2, activo: 1, inicio: '08:00', fin: '19:00' }, // Mar
-        { dia: 3, activo: 1, inicio: '08:00', fin: '19:00' }, // Mie
-        { dia: 4, activo: 1, inicio: '08:00', fin: '19:00' }, // Jue
-        { dia: 5, activo: 1, inicio: '08:00', fin: '19:00' }, // Vie
-        { dia: 6, activo: 1, inicio: '08:00', fin: '15:00' }, // Sab
-    ];
-    for (const h of horarios) {
+    // Administradores demo (siempre garantizados; credenciales visibles en el modo evaluador)
+    for (const a of def.admins) {
         await db.run(`
-            INSERT INTO configuracion_horario (empresa_id, dia_semana, activo, inicio, fin)
-            VALUES (?, ?, ?, ?, ?)
-        `, [empresaId, h.dia, h.activo, h.inicio, h.fin]);
+            INSERT OR IGNORE INTO administradores (empresa_id, usuario, password)
+            VALUES (?, ?, ?)
+        `, [empresaId, a.usuario, a.password]);
     }
 
-    // 4. Servicios Semilla
-    const servicios = [
-        { n: 'Uñas Semipermanentes', c: 'Uñas', d: 60, p: 35000, desc: 'Aplicación de esmalte semipermanente de larga duración.' },
-        { n: 'Uñas Acrílicas', c: 'Uñas', d: 90, p: 65000, desc: 'Extensión de uñas con sistema acrílico.' },
-        { n: 'Masaje Relajante', c: 'Relajación', d: 60, p: 80000, desc: 'Masaje corporal completo de relajación profunda.' },
-        { n: 'Masaje Descontracturante', c: 'Relajación', d: 90, p: 100000, desc: 'Masaje terapéutico para liberar tensión muscular.' },
-        { n: 'Tratamiento Facial', c: 'Tratamientos', d: 60, p: 60000, desc: 'Limpieza e hidratación facial profunda.' },
-        { n: 'Cejas y Pestañas', c: 'Tratamientos', d: 45, p: 40000, desc: 'Diseño de cejas y lifting de pestañas.' },
-        { n: 'Drenaje Linfático', c: 'Tratamientos', d: 60, p: 70000, desc: 'Masaje para estimular la circulación linfática.' },
-        { n: 'Paquete Novias', c: 'Especiales', d: 180, p: 250000, desc: 'Masaje, facial, manicure y pedicure.' }
-    ];
-    
-    for (const s of servicios) {
-        await db.run(`
-            INSERT INTO servicios (empresa_id, nombre, categoria, duracion, precio, descripcion)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [empresaId, s.n, s.c, s.d, s.p, s.desc]);
-    }
-
-    // 5. Crear Administradores Semilla
-    // ── Admin principal (acceso rapido en evaluacion SENA) ──────────────────
-    await db.run(`
-        INSERT INTO administradores (empresa_id, usuario, password)
-        VALUES (?, 'admin', 'admin123')
-    `, [empresaId]);
-
-    // ── Admin de demostracion con email (credenciales visibles en landing) ──
-    await db.run(`
-        INSERT OR IGNORE INTO administradores (empresa_id, usuario, password)
-        VALUES (?, 'admin@demoestetica.com', '123456')
-    `, [empresaId]);
-
-    // 6. Cargar 5 Clientes Simulados con Citas
-    await seedClientesSimulados(db, empresaId);
-
-    console.log('✅ Seeder completado con éxito.');
-    console.log('   Usuario demo 1: admin           | Contraseña: admin123');
-    console.log('   Usuario demo 2: admin@demoestetica.com | Contraseña: 123456');
+    return empresaId;
 }
 
 /**
- * Seeder de 5 Clientes Simulados del Spa y sus citas operativas
+ * Garantiza citas de ejemplo en la SEMANA ACTUAL (idempotente).
+ * - Si la cita demo no existe, la crea.
+ * - Si existe pero quedó fuera de la semana actual (datos viejos), la reubica.
+ * Así el calendario y los ingresos proyectados nunca aparecen en cero.
  */
-async function seedClientesSimulados(db, empresaId) {
-    if (!db) db = await connectDB();
-    if (!empresaId) {
-        const emp = await db.get('SELECT id FROM empresas WHERE slug = ?', ['samambaia']);
-        if (!emp) return;
-        empresaId = emp.id;
-    }
+async function seedCitasSemanaActual(db, empresaId, def) {
+    const { lunesDate, sabado, lunes, hoy } = rangoSemanaActual();
+    let n = 0;
 
-    const clientas = [
-        {
-            nombre: 'Valentina Gómez',
-            telefono: '3105551234',
-            edad: 28,
-            genero: 'Femenino',
-            citas: [
-                { servicioNombre: 'Masaje Relajante', fecha: '2026-09-28', hora: '10:00', duracion: 60, estado: 'Completada', idPublico: 'SAM-0101' },
-                { servicioNombre: 'Tratamiento Facial', fecha: '2026-10-02', hora: '11:00', duracion: 60, estado: 'Confirmada', idPublico: 'SAM-0102' },
-                { servicioNombre: 'Cejas y Pestañas', fecha: '2026-10-06', hora: '16:00', duracion: 45, estado: 'Confirmada', idPublico: 'SAM-0103' }
-            ]
-        },
-        {
-            nombre: 'Camila Rodríguez',
-            telefono: '3158884321',
-            edad: 32,
-            genero: 'Femenino',
-            citas: [
-                { servicioNombre: 'Uñas Semipermanentes', fecha: '2026-09-29', hora: '15:00', duracion: 60, estado: 'Completada', idPublico: 'SAM-0104' },
-                { servicioNombre: 'Uñas Semipermanentes', fecha: '2026-10-03', hora: '14:00', duracion: 60, estado: 'Confirmada', idPublico: 'SAM-0105' }
-            ]
-        },
-        {
-            nombre: 'Daniela Morales',
-            telefono: '3209998765',
-            edad: 26,
-            genero: 'Femenino',
-            citas: [
-                { servicioNombre: 'Drenaje Linfático', fecha: '2026-09-25', hora: '09:00', duracion: 60, estado: 'Completada', idPublico: 'SAM-0106' },
-                { servicioNombre: 'Drenaje Linfático', fecha: '2026-10-02', hora: '09:00', duracion: 60, estado: 'Confirmada', idPublico: 'SAM-0107' }
-            ]
-        },
-        {
-            nombre: 'Sofía Castañeda',
-            telefono: '3124449876',
-            edad: 34,
-            genero: 'Femenino',
-            citas: [
-                { servicioNombre: 'Paquete Novias', fecha: '2026-10-03', hora: '10:00', duracion: 180, estado: 'Confirmada', idPublico: 'SAM-0108' }
-            ]
-        },
-        {
-            nombre: 'Mariana Silva',
-            telefono: '3173336543',
-            edad: 29,
-            genero: 'Femenino',
-            citas: [
-                { servicioNombre: 'Uñas Acrílicas', fecha: '2026-09-30', hora: '16:00', duracion: 90, estado: 'Completada', idPublico: 'SAM-0109' },
-                { servicioNombre: 'Uñas Acrílicas', fecha: '2026-10-05', hora: '15:00', duracion: 90, estado: 'Confirmada', idPublico: 'SAM-0110' }
-            ]
+    for (const c of def.citas) {
+        n++;
+        const idPublico = `${def.prefijoCitas}-D${String(n).padStart(2, '0')}`;
+        const f = new Date(lunesDate);
+        f.setDate(lunesDate.getDate() + c.dia);
+        const fecha = fechaLocalISO(f);
+        const estado = fecha < hoy ? 'Completada' : 'Confirmada';
+
+        const serv = await db.get('SELECT id, precio, duracion FROM servicios WHERE empresa_id = ? AND nombre = ?', [empresaId, c.serv]);
+        if (!serv) continue;
+
+        const existente = await db.get('SELECT id, fecha FROM citas WHERE id_publico = ? AND empresa_id = ?', [idPublico, empresaId]);
+        if (existente) {
+            if (existente.fecha < lunes || existente.fecha > sabado) {
+                await db.run('UPDATE citas SET fecha = ?, estado = ? WHERE id = ?', [fecha, estado, existente.id]);
+            }
+            continue;
         }
-    ];
 
-    for (const c of clientas) {
-        let usuario = await db.get('SELECT id FROM usuarios WHERE empresa_id = ? AND telefono = ?', [empresaId, c.telefono]);
-        let usuarioId;
+        let usuario = await db.get('SELECT id FROM usuarios WHERE empresa_id = ? AND telefono = ?', [empresaId, c.tel]);
         if (!usuario) {
             const resU = await db.run(`
                 INSERT INTO usuarios (empresa_id, nombre, telefono, edad, genero)
                 VALUES (?, ?, ?, ?, ?)
-            `, [empresaId, c.nombre, c.telefono, c.edad, c.genero]);
-            usuarioId = resU.lastID;
-        } else {
-            usuarioId = usuario.id;
+            `, [empresaId, c.cliente, c.tel, c.edad, null]);
+            usuario = { id: resU.lastID };
         }
 
-        for (const cita of c.citas) {
-            const serv = await db.get('SELECT id, precio FROM servicios WHERE empresa_id = ? AND nombre = ?', [empresaId, cita.servicioNombre]);
-            if (serv) {
-                const citaExistente = await db.get('SELECT id FROM citas WHERE id_publico = ?', [cita.idPublico]);
-                if (!citaExistente) {
-                    await db.run(`
-                        INSERT INTO citas (id_publico, empresa_id, usuario_id, servicio_id, fecha, hora, duracion, estado, precio_cobrado)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    `, [cita.idPublico, empresaId, usuarioId, serv.id, cita.fecha, cita.hora, cita.duracion, cita.estado, serv.precio]);
-                }
-            }
-        }
+        await db.run(`
+            INSERT INTO citas (id_publico, empresa_id, usuario_id, servicio_id, fecha, hora, duracion, estado, precio_cobrado)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [idPublico, empresaId, usuario.id, serv.id, fecha, c.hora, serv.duracion, estado, serv.precio]);
     }
-    console.log('✅ 5 Clientes simulados y citas registradas correctamente para la empresa.');
 }
+
+// Seeder principal: 3 centros demo (Samambaia Spa, Demo Spa Zen, Demo Barbería).
+// Es idempotente: se puede ejecutar en cada arranque (Render) sin duplicar datos.
+async function seedInitialTenant() {
+    const db = await connectDB();
+    for (const def of TENANTS_DEMO) {
+        const empresaId = await crearTenantDemo(db, def);
+        await seedCitasSemanaActual(db, empresaId, def);
+    }
+    console.log('✅ Seeder completado: Samambaia Spa, Demo Spa Zen y Demo Barbería listos con citas de la semana actual.');
+    console.log('   Evaluador SENA:  admin@demoestetica.com | 123456');
+    console.log('   Samambaia:       admin | admin123');
+}
+
+/** Compatibilidad: re-siembra únicamente las citas de la semana actual de Samambaia. */
+async function seedClientesSimulados(db, empresaId) {
+    if (!db) db = await connectDB();
+    const def = TENANTS_DEMO[0];
+    if (!empresaId) {
+        const emp = await db.get('SELECT id FROM empresas WHERE slug = ?', [def.slug]);
+        if (!emp) return;
+        empresaId = emp.id;
+    }
+    await seedCitasSemanaActual(db, empresaId, def);
+}
+
 
 module.exports = {
     connectDB,

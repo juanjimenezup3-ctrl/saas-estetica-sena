@@ -449,10 +449,15 @@ app.post('/api/saas/login', async (req, res) => {
 });
 
 app.post('/api/saas/register', async (req, res) => {
-    const { nombreNegocio, email, password, plan } = req.body;
+    const { nombreNegocio, email, password, plan, aceptaHabeasData } = req.body;
 
     if (!nombreNegocio || !email || !password || !plan) {
         return res.status(400).json({ ok: false, mensaje: 'Todos los campos son obligatorios.' });
+    }
+
+    // Ley 1581 de 2012 (Habeas Data): consentimiento obligatorio
+    if (aceptaHabeasData !== true) {
+        return res.status(400).json({ ok: false, mensaje: 'Debes aceptar el tratamiento de datos personales (Ley 1581 de 2012 — Habeas Data) para registrar tu centro.' });
     }
 
     try {
@@ -1339,7 +1344,12 @@ app.post('/api/crear-cita', async (req, res) => {
         // --- Generar ID público de la cita ---
         const prefijo = empresa.slug.substring(0, 3).toUpperCase();
         const countRow = await db.get('SELECT COUNT(*) as total FROM citas WHERE empresa_id = ?', [empresa.id]);
-        const idCita = `${prefijo}-${String((countRow.total || 0) + 1).padStart(4, '0')}`;
+        let consecutivo = (countRow.total || 0) + 1;
+        let idCita = `${prefijo}-${String(consecutivo).padStart(4, '0')}`;
+        while (await db.get('SELECT 1 FROM citas WHERE id_publico = ?', [idCita])) {
+            consecutivo++;
+            idCita = `${prefijo}-${String(consecutivo).padStart(4, '0')}`;
+        }
         
         const precioFinal = obtenerPrecioFinal(servicioEncontrado, fecha);
 
